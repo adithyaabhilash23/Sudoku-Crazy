@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sudoku Master</title>
+    <meta name="description" content="Super Sudoku — challenge your mind and master the 9×9 grid across four difficulty levels." />
     <link rel="stylesheet" href="css/variables.css" />
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/animations.css" />
@@ -13,21 +14,22 @@
 <body>
 
     <!-- Animated Background -->
-    <div class="bg-anim" id="bg-anim"></div>
+    <div class="bg-anim" id="bg-anim" aria-hidden="true"></div>
 
     <!-- Confetti -->
-    <canvas id="confetti-canvas"></canvas>
+    <canvas id="confetti-canvas" aria-hidden="true"></canvas>
 
     <!-- Toast Container -->
-    <div id="toast-container"></div>
+    <div id="toast-container" role="status" aria-live="polite" aria-atomic="false"></div>
 
     <!-- WIN Modal -->
-    <div class="modal-overlay" id="win-modal">
+    <div class="modal-overlay" id="win-modal"
+         role="dialog" aria-modal="true" aria-labelledby="win-modal-title">
         <div class="modal">
-            <div class="modal-icon">🎉</div>
-            <div class="modal-title win">Puzzle Solved!</div>
+            <div class="modal-icon" aria-hidden="true">🎉</div>
+            <div class="modal-title win" id="win-modal-title">Puzzle Solved!</div>
             <div class="modal-sub" id="win-sub">Outstanding! You've completed the puzzle.</div>
-            <div class="modal-stats">
+            <div class="modal-stats" aria-label="Game statistics">
                 <div class="modal-stat">
                     <div class="ms-val" id="win-time">0:00</div>
                     <div class="ms-label">Time</div>
@@ -42,49 +44,58 @@
                 </div>
             </div>
             <div class="modal-btns">
-                <button class="modal-btn primary" onclick="newGame()">New Game</button>
-                <button class="modal-btn secondary" onclick="closeModal('win-modal')">Review</button>
+                <button class="modal-btn primary"
+                        data-action="new-game"
+                        aria-label="Start a new game">New Game</button>
+                <button class="modal-btn secondary"
+                        data-action="close-modal" data-modal="win-modal"
+                        aria-label="Close and review the solved board">Review</button>
             </div>
         </div>
     </div>
 
     <!-- LOSE Modal -->
-    <div class="modal-overlay" id="lose-modal">
+    <div class="modal-overlay" id="lose-modal"
+         role="dialog" aria-modal="true" aria-labelledby="lose-modal-title">
         <div class="modal">
-            <div class="modal-icon">💔</div>
-            <div class="modal-title lose">Game Over</div>
+            <div class="modal-icon" aria-hidden="true">💔</div>
+            <div class="modal-title lose" id="lose-modal-title">Game Over</div>
             <div class="modal-sub">Too many mistakes! Don't worry, practice makes perfect.</div>
             <div class="modal-btns">
-                <button class="modal-btn primary" onclick="newGame()">Try Again</button>
-                <button class="modal-btn secondary" onclick="revealSolution()">See Solution</button>
+                <button class="modal-btn primary"
+                        data-action="new-game"
+                        aria-label="Try the puzzle again">Try Again</button>
+                <button class="modal-btn secondary"
+                        data-action="reveal-solution"
+                        aria-label="Reveal the correct solution">See Solution</button>
             </div>
         </div>
     </div>
 
     <div class="app-wrapper">
         <!-- Header -->
-        <header>
+        <header role="banner">
             <div class="logo">SUDOKU MASTER</div>
             <div class="tagline">Challenge your mind · Master the grid</div>
         </header>
 
         <!-- Stats Bar -->
-        <div class="stats-bar">
+        <div class="stats-bar" role="region" aria-label="Game statistics">
             <div class="stat-chip">
-                <span class="icon">⏱️</span>
-                <span class="val" id="timer-val">0:00</span>
+                <span class="icon" aria-hidden="true">⏱️</span>
+                <span class="val" id="timer-val" aria-label="Timer">0:00</span>
             </div>
             <div class="stat-chip">
-                <span class="icon">❌</span>
-                <span class="val" id="mistakes-val">0/3</span>
+                <span class="icon" aria-hidden="true">❌</span>
+                <span class="val" id="mistakes-val" aria-label="Mistakes">0/3</span>
             </div>
             <div class="stat-chip">
-                <span class="icon">⭐</span>
-                <span class="val" id="score-val">0</span>
+                <span class="icon" aria-hidden="true">⭐</span>
+                <span class="val" id="score-val" aria-label="Score">0</span>
             </div>
             <div class="stat-chip">
-                <span class="icon">📝</span>
-                <span class="val" id="filled-val">0/81</span>
+                <span class="icon" aria-hidden="true">📝</span>
+                <span class="val" id="filled-val" aria-label="Cells filled">0/81</span>
             </div>
         </div>
 
@@ -92,56 +103,106 @@
         <div class="game-container">
 
             <!-- LEFT PANEL -->
-            <div class="left-panel">
+            <div class="left-panel" role="complementary" aria-label="Game controls">
                 <div class="panel-card">
                     <div class="panel-title">⚡ Difficulty</div>
-                    <div class="diff-btns">
-                        <button class="diff-btn" data-diff="easy" onclick="setDifficulty('easy')"><span class="diff-dot"
-                                style="background:#00d68f"></span>Easy</button>
-                        <button class="diff-btn active" data-diff="medium" onclick="setDifficulty('medium')"><span
-                                class="diff-dot" style="background:#4fc3f7"></span>Medium</button>
-                        <button class="diff-btn" data-diff="hard" onclick="setDifficulty('hard')"><span class="diff-dot"
-                                style="background:#ffb74d"></span>Hard</button>
-                        <button class="diff-btn" data-diff="expert" onclick="setDifficulty('expert')"><span
-                                class="diff-dot" style="background:#e94560"></span>Expert</button>
+                    <div class="diff-btns" role="group" aria-label="Select difficulty">
+                        <button class="diff-btn" data-diff="easy"
+                                data-action="set-difficulty"
+                                aria-label="Easy difficulty"
+                                aria-pressed="false">
+                            <span class="diff-dot" style="background:#00d68f" aria-hidden="true"></span>Easy
+                        </button>
+                        <button class="diff-btn active" data-diff="medium"
+                                data-action="set-difficulty"
+                                aria-label="Medium difficulty"
+                                aria-pressed="true">
+                            <span class="diff-dot" style="background:#4fc3f7" aria-hidden="true"></span>Medium
+                        </button>
+                        <button class="diff-btn" data-diff="hard"
+                                data-action="set-difficulty"
+                                aria-label="Hard difficulty"
+                                aria-pressed="false">
+                            <span class="diff-dot" style="background:#ffb74d" aria-hidden="true"></span>Hard
+                        </button>
+                        <button class="diff-btn" data-diff="expert"
+                                data-action="set-difficulty"
+                                aria-label="Expert difficulty"
+                                aria-pressed="false">
+                            <span class="diff-dot" style="background:#e94560" aria-hidden="true"></span>Expert
+                        </button>
                     </div>
                 </div>
 
                 <div class="panel-card">
                     <div class="panel-title">🎮 Actions</div>
-                    <div class="action-btns">
-                        <button class="action-btn" onclick="newGame()"><span class="btn-icon">🔄</span>New Game</button>
-                        <button class="action-btn" onclick="undoMove()"><span class="btn-icon">↩️</span>Undo</button>
-                        <button class="action-btn" onclick="useHint()"><span class="btn-icon">💡</span>Hint <span
-                                id="hint-count" style="color:var(--gold);font-size:0.75rem">(3)</span></button>
-                        <button class="action-btn" onclick="solvePuzzle()"><span class="btn-icon">🤖</span>Auto
-                            Solve</button>
-                        <button class="action-btn danger" onclick="confirmReset()"><span
-                                class="btn-icon">🗑️</span>Reset</button>
+                    <div class="action-btns" role="group" aria-label="Game actions">
+                        <button class="action-btn"
+                                data-action="new-game"
+                                aria-label="Start a new game">
+                            <span class="btn-icon" aria-hidden="true">🔄</span>New Game
+                        </button>
+                        <button class="action-btn"
+                                data-action="undo"
+                                aria-label="Undo last move">
+                            <span class="btn-icon" aria-hidden="true">↩️</span>Undo
+                        </button>
+                        <button class="action-btn"
+                                data-action="hint"
+                                aria-label="Use a hint">
+                            <span class="btn-icon" aria-hidden="true">💡</span>Hint
+                            <span id="hint-count" style="color:var(--gold);font-size:0.75rem"
+                                  aria-label="3 hints remaining">(3)</span>
+                        </button>
+                        <button class="action-btn"
+                                data-action="solve"
+                                aria-label="Auto-solve the puzzle">
+                            <span class="btn-icon" aria-hidden="true">🤖</span>Auto Solve
+                        </button>
+                        <button class="action-btn danger"
+                                data-action="reset"
+                                aria-label="Reset all progress on this puzzle">
+                            <span class="btn-icon" aria-hidden="true">🗑️</span>Reset
+                        </button>
                     </div>
                 </div>
 
                 <div class="panel-card">
                     <div class="panel-title">⚙️ Options</div>
                     <div class="toggle-row">
-                        <span class="toggle-label">Highlight Related</span>
-                        <button class="toggle on" id="tog-related" onclick="toggleOpt('related')"></button>
+                        <span class="toggle-label" id="lbl-related">Highlight Related</span>
+                        <button class="toggle on" id="tog-related"
+                                data-action="toggle-opt" data-opt="related"
+                                role="switch" aria-checked="true"
+                                aria-labelledby="lbl-related"></button>
                     </div>
                     <div class="toggle-row">
-                        <span class="toggle-label">Highlight Same Nums</span>
-                        <button class="toggle on" id="tog-samenum" onclick="toggleOpt('samenum')"></button>
+                        <span class="toggle-label" id="lbl-samenum">Highlight Same Nums</span>
+                        <button class="toggle on" id="tog-samenum"
+                                data-action="toggle-opt" data-opt="samenum"
+                                role="switch" aria-checked="true"
+                                aria-labelledby="lbl-samenum"></button>
                     </div>
                     <div class="toggle-row">
-                        <span class="toggle-label">Show Mistakes</span>
-                        <button class="toggle on" id="tog-mistakes" onclick="toggleOpt('mistakes')"></button>
+                        <span class="toggle-label" id="lbl-mistakes">Show Mistakes</span>
+                        <button class="toggle on" id="tog-mistakes"
+                                data-action="toggle-opt" data-opt="mistakes"
+                                role="switch" aria-checked="true"
+                                aria-labelledby="lbl-mistakes"></button>
                     </div>
                     <div class="toggle-row">
-                        <span class="toggle-label">Notes Mode</span>
-                        <button class="toggle" id="tog-notes" onclick="toggleOpt('notes')"></button>
+                        <span class="toggle-label" id="lbl-notes">Notes Mode</span>
+                        <button class="toggle" id="tog-notes"
+                                data-action="toggle-opt" data-opt="notes"
+                                role="switch" aria-checked="false"
+                                aria-labelledby="lbl-notes"></button>
                     </div>
                     <div class="toggle-row">
-                        <span class="toggle-label">Auto Remove Notes</span>
-                        <button class="toggle on" id="tog-autonotes" onclick="toggleOpt('autonotes')"></button>
+                        <span class="toggle-label" id="lbl-autonotes">Auto Remove Notes</span>
+                        <button class="toggle on" id="tog-autonotes"
+                                data-action="toggle-opt" data-opt="autonotes"
+                                role="switch" aria-checked="true"
+                                aria-labelledby="lbl-autonotes"></button>
                     </div>
                 </div>
             </div>
@@ -149,41 +210,58 @@
             <!-- CENTER: BOARD + NUMPAD -->
             <div class="board-section">
                 <div class="board-wrapper" id="board-wrapper">
-                    <div id="sudoku-board"></div>
+                    <div id="sudoku-board"
+                         role="grid"
+                         aria-label="Sudoku grid, 9 rows and 9 columns"
+                         aria-rowcount="9" aria-colcount="9"></div>
                 </div>
-                <div class="numpad" id="numpad"></div>
-                <div class="kb-hint">
-                    Use <span class="kb-key">1-9</span> to fill · <span class="kb-key">Del</span>/<span
-                        class="kb-key">0</span> to clear · <span class="kb-key">N</span> for notes · <span
-                        class="kb-key">Z</span> to undo · <span class="kb-key">H</span> for hint · <span
-                        class="kb-key">↑↓←→</span> navigate
+                <div class="numpad" id="numpad" role="group" aria-label="Number pad"></div>
+                <div class="kb-hint" aria-label="Keyboard shortcuts">
+                    Use <span class="kb-key">1-9</span> to fill ·
+                    <span class="kb-key">Del</span>/<span class="kb-key">0</span> to clear ·
+                    <span class="kb-key">N</span> for notes ·
+                    <span class="kb-key">Z</span> to undo ·
+                    <span class="kb-key">H</span> for hint ·
+                    <span class="kb-key">↑↓←→</span> navigate
                 </div>
             </div>
 
             <!-- RIGHT PANEL -->
-            <div class="right-panel">
+            <div class="right-panel" role="complementary" aria-label="Game statistics panels">
                 <div class="panel-card">
                     <div class="panel-title">📊 Progress</div>
-                    <div class="progress-row">
+                    <div class="progress-row" role="region" aria-label="Progress bars">
                         <div class="prog-item">
-                            <div class="prog-label"><span>Filled</span><span id="prog-filled-txt">0%</span></div>
-                            <div class="prog-bar">
+                            <div class="prog-label">
+                                <span>Filled</span><span id="prog-filled-txt">0%</span>
+                            </div>
+                            <div class="prog-bar" role="progressbar"
+                                 aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
+                                 aria-label="Cells filled">
                                 <div class="prog-fill" id="prog-filled" style="width:0%"></div>
                             </div>
                         </div>
                         <div class="prog-item">
-                            <div class="prog-label"><span>Accuracy</span><span id="prog-acc-txt">100%</span></div>
-                            <div class="prog-bar">
+                            <div class="prog-label">
+                                <span>Accuracy</span><span id="prog-acc-txt">100%</span>
+                            </div>
+                            <div class="prog-bar" role="progressbar"
+                                 aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                 aria-label="Accuracy">
                                 <div class="prog-fill" id="prog-acc"
-                                    style="width:100%; background: linear-gradient(90deg, var(--green), var(--blue))">
+                                     style="width:100%; background: linear-gradient(90deg, var(--green), var(--blue))">
                                 </div>
                             </div>
                         </div>
                         <div class="prog-item">
-                            <div class="prog-label"><span>Hints Used</span><span id="prog-hint-txt">0</span></div>
-                            <div class="prog-bar">
+                            <div class="prog-label">
+                                <span>Hints Used</span><span id="prog-hint-txt">0</span>
+                            </div>
+                            <div class="prog-bar" role="progressbar"
+                                 aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
+                                 aria-label="Hints used">
                                 <div class="prog-fill" id="prog-hint"
-                                    style="width:0%; background: linear-gradient(90deg, var(--gold), var(--orange))">
+                                     style="width:0%; background: linear-gradient(90deg, var(--gold), var(--orange))">
                                 </div>
                             </div>
                         </div>
@@ -192,19 +270,23 @@
 
                 <div class="panel-card">
                     <div class="panel-title">🏆 Best Times</div>
-                    <div id="best-times" style="display:flex;flex-direction:column;gap:6px;font-size:0.8rem;">
+                    <div id="best-times"
+                         style="display:flex;flex-direction:column;gap:6px;font-size:0.8rem;"
+                         aria-label="Best completion times per difficulty">
                         <!-- filled by JS -->
                     </div>
                 </div>
 
                 <div class="panel-card">
                     <div class="panel-title">🔥 Move History</div>
-                    <div class="history-list" id="history-list"></div>
+                    <div class="history-list" id="history-list"
+                         role="log" aria-live="polite" aria-label="Move history"></div>
                 </div>
 
                 <div class="panel-card">
                     <div class="panel-title">🗺️ Cell Heatmap</div>
-                    <div class="heatmap-grid" id="heatmap"></div>
+                    <div class="heatmap-grid" id="heatmap"
+                         role="img" aria-label="Cell edit frequency heatmap"></div>
                 </div>
             </div>
 

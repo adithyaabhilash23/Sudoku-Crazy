@@ -3,8 +3,8 @@
 // callbacks/imports to UI modules.
 
 import { state, DIFF_CONFIG } from './sudoku.js';
+import { BOARD_SIZE, CELL_COUNT, BOX_ROWS, BOX_COLS, BOARD_CONFIG } from './config.js';
 import { generatePuzzle } from './generator.js';
-import { solve } from './solver.js';
 import { saveBestTimes } from '../utils/storage.js';
 import { formatTime } from '../utils/helpers.js';
 
@@ -21,11 +21,17 @@ export function scoreForCell() {
 
 // ── AUTO-REMOVE NOTES ────────────────────────────────────────────────────────
 export function clearRelatedNotes(idx, num) {
-    const row = Math.floor(idx / 9), col = idx % 9;
-    const boxR = Math.floor(row / 3) * 3, boxC = Math.floor(col / 3) * 3;
-    for (let i = 0; i < 81; i++) {
-        const ir = Math.floor(i / 9), ic = i % 9;
-        if (ir === row || ic === col || (Math.floor(ir / 3) * 3 === boxR && Math.floor(ic / 3) * 3 === boxC)) {
+    const row  = Math.floor(idx / BOARD_SIZE);
+    const col  = idx % BOARD_SIZE;
+    const boxR = Math.floor(row / BOX_ROWS) * BOX_ROWS;
+    const boxC = Math.floor(col / BOX_COLS) * BOX_COLS;
+    for (let i = 0; i < CELL_COUNT; i++) {
+        const ir = Math.floor(i / BOARD_SIZE), ic = i % BOARD_SIZE;
+        if (
+            ir === row || ic === col ||
+            (Math.floor(ir / BOX_ROWS) * BOX_ROWS === boxR &&
+             Math.floor(ic / BOX_COLS) * BOX_COLS === boxC)
+        ) {
             state.notes[i].delete(num);
         }
     }
@@ -48,7 +54,7 @@ export function stopTimer() {
 // ── WIN CHECK ────────────────────────────────────────────────────────────────
 export function checkWin() {
     const filled = state.board.filter((v, i) => v !== 0 && v === state.solution[i]).length;
-    if (filled === 81) {
+    if (filled === CELL_COUNT) {
         state.gameActive = false;
         stopTimer();
         const t = formatTime(state.timerSec);
@@ -56,8 +62,8 @@ export function checkWin() {
             state.bestTimes[state.difficulty] = state.timerSec;
             saveBestTimes(state.bestTimes);
         }
-        document.getElementById('win-time').textContent = t;
-        document.getElementById('win-score').textContent = state.score;
+        document.getElementById('win-time').textContent     = t;
+        document.getElementById('win-score').textContent    = state.score;
         document.getElementById('win-mistakes').textContent = state.mistakes;
         document.getElementById('win-sub').textContent =
             `${DIFF_CONFIG[state.difficulty].label} puzzle completed in ${t}!`;
@@ -101,7 +107,7 @@ export function inputNumber(num) {
         const cell = document.querySelector(`.cell[data-idx="${idx}"]`);
         cell.classList.add('shake');
         setTimeout(() => cell.classList.remove('shake'), 400);
-        _ui.addHistoryLog(`R${Math.floor(idx / 9) + 1}C${idx % 9 + 1}: ${num} ✗`, 'err');
+        _ui.addHistoryLog(`R${Math.floor(idx / BOARD_SIZE) + 1}C${idx % BOARD_SIZE + 1}: ${num} ✗`, 'err');
         _ui.showToast(`❌ Incorrect! ${state.maxMistakes - state.mistakes} chances left`, 'error');
         if (state.mistakes >= state.maxMistakes) {
             setTimeout(() => _ui.showModal('lose-modal'), 600);
@@ -113,7 +119,7 @@ export function inputNumber(num) {
         const cell = document.querySelector(`.cell[data-idx="${idx}"]`);
         cell.classList.add('pop-in');
         setTimeout(() => cell.classList.remove('pop-in'), 300);
-        _ui.addHistoryLog(`R${Math.floor(idx / 9) + 1}C${idx % 9 + 1}: ${num} ✓`, '');
+        _ui.addHistoryLog(`R${Math.floor(idx / BOARD_SIZE) + 1}C${idx % BOARD_SIZE + 1}: ${num} ✓`, '');
     }
 
     state.selectedNum = num;
@@ -137,11 +143,11 @@ export function clearCell() {
 export function undoMove() {
     if (!state.history.length) { _ui.showToast('Nothing to undo!', 'info'); return; }
     const h = state.history.pop();
-    state.board[h.idx] = h.oldVal;
-    state.notes[h.idx] = h.oldNotes;
+    state.board[h.idx]  = h.oldVal;
+    state.notes[h.idx]  = h.oldNotes;
     state.errors[h.idx] = false;
-    state.selected = h.idx;
-    _ui.addHistoryLog(`Undo R${Math.floor(h.idx / 9) + 1}C${h.idx % 9 + 1}`, 'undo');
+    state.selected      = h.idx;
+    _ui.addHistoryLog(`Undo R${Math.floor(h.idx / BOARD_SIZE) + 1}C${h.idx % BOARD_SIZE + 1}`, 'undo');
     _ui.updateBoardDisplay();
     _ui.showToast('↩️ Move undone', 'info');
 }
@@ -154,7 +160,7 @@ export function useHint() {
     let idx = state.selected;
     if (idx < 0 || state.board[idx] !== 0 || state.given[idx]) {
         const empties = [];
-        for (let i = 0; i < 81; i++) if (state.board[i] === 0) empties.push(i);
+        for (let i = 0; i < CELL_COUNT; i++) if (state.board[i] === 0) empties.push(i);
         if (!empties.length) return;
         idx = empties[Math.floor(Math.random() * empties.length)];
     }
@@ -164,18 +170,20 @@ export function useHint() {
     state.hintsUsed++;
     document.getElementById('hint-count').textContent = `(${state.hintsLeft})`;
 
-    state.board[idx] = state.solution[idx];
+    state.board[idx]    = state.solution[idx];
     state.notes[idx].clear();
-    state.errors[idx] = false;
-    state.given[idx] = true;
-    state.selected = idx;
+    state.errors[idx]   = false;
+    state.given[idx]    = true;
+    state.selected      = idx;
 
     const cell = document.querySelector(`.cell[data-idx="${idx}"]`);
     cell.classList.add('highlight-flash', 'given');
     setTimeout(() => cell.classList.remove('highlight-flash'), 350);
 
     _ui.updateBoardDisplay();
-    _ui.addHistoryLog(`Hint R${Math.floor(idx / 9) + 1}C${idx % 9 + 1}: ${state.solution[idx]} 💡`, '');
+    _ui.addHistoryLog(
+        `Hint R${Math.floor(idx / BOARD_SIZE) + 1}C${idx % BOARD_SIZE + 1}: ${state.solution[idx]} 💡`, ''
+    );
     _ui.showToast(`💡 Hint used! ${state.hintsLeft} remaining`, 'info');
     checkWin();
 }
@@ -184,9 +192,9 @@ export function useHint() {
 export function solvePuzzle() {
     if (!state.gameActive) return;
     if (!confirm('Auto-solve will end your current game. Continue?')) return;
-    for (let i = 0; i < 81; i++) {
+    for (let i = 0; i < CELL_COUNT; i++) {
         if (!state.given[i]) {
-            state.board[i] = state.solution[i];
+            state.board[i]  = state.solution[i];
             state.errors[i] = false;
             state.notes[i].clear();
         }
@@ -213,24 +221,24 @@ export function newGame() {
 
     setTimeout(() => {
         const { puzzle, solution } = generatePuzzle(cfg.clues);
-        state.board = [...puzzle];
-        state.solution = [...solution];
-        state.given = puzzle.map(v => v !== 0);
-        state.notes = Array.from({ length: 81 }, () => new Set());
-        state.errors = Array(81).fill(false);
-        state.heatmap = Array(81).fill(0);
-        state.selected = -1;
+        state.board      = [...puzzle];
+        state.solution   = [...solution];
+        state.given      = puzzle.map(v => v !== 0);
+        state.notes      = Array.from({ length: CELL_COUNT }, () => new Set());
+        state.errors     = Array(CELL_COUNT).fill(false);
+        state.heatmap    = Array(CELL_COUNT).fill(0);
+        state.selected   = -1;
         state.selectedNum = -1;
-        state.mistakes = 0;
-        state.score = 0;
-        state.hintsLeft = 3;
-        state.hintsUsed = 0;
-        state.history = [];
+        state.mistakes   = 0;
+        state.score      = 0;
+        state.hintsLeft  = BOARD_CONFIG.maxHints;
+        state.hintsUsed  = 0;
+        state.history    = [];
         state.historyLog = [];
         state.gameActive = true;
 
-        document.getElementById('hint-count').textContent = '(3)';
-        document.getElementById('history-list').innerHTML = '';
+        document.getElementById('hint-count').textContent   = `(${BOARD_CONFIG.maxHints})`;
+        document.getElementById('history-list').innerHTML   = '';
 
         stopTimer(); state.timerSec = 0;
         startTimer();
@@ -246,7 +254,9 @@ export function newGame() {
 export function setDifficulty(d) {
     state.difficulty = d;
     document.querySelectorAll('.diff-btn').forEach(b => {
-        b.classList.toggle('active', b.dataset.diff === d);
+        const active = b.dataset.diff === d;
+        b.classList.toggle('active', active);
+        b.setAttribute('aria-pressed', active ? 'true' : 'false');
     });
     newGame();
 }
@@ -255,12 +265,13 @@ export function setDifficulty(d) {
 export function confirmReset() {
     if (!state.gameActive) return;
     if (!confirm('Reset all your progress?')) return;
-    for (let i = 0; i < 81; i++) {
+    for (let i = 0; i < CELL_COUNT; i++) {
         if (!state.given[i]) {
             state.board[i] = 0; state.errors[i] = false; state.notes[i].clear();
         }
     }
-    state.mistakes = 0; state.score = 0; state.history = [];
+    state.mistakes   = 0; state.score = 0;
+    state.history    = [];
     state.historyLog = [];
     document.getElementById('history-list').innerHTML = '';
     _ui.updateBoardDisplay();
@@ -272,6 +283,7 @@ export function toggleOpt(key) {
     state.opts[key] = !state.opts[key];
     const tog = document.getElementById('tog-' + key);
     tog.classList.toggle('on', state.opts[key]);
+    tog.setAttribute('aria-checked', state.opts[key] ? 'true' : 'false');
     _ui.updateBoardDisplay();
     if (key === 'notes') _ui.showToast(state.opts.notes ? '📝 Notes mode ON' : '📝 Notes mode OFF', 'info');
 }

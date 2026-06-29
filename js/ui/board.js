@@ -2,20 +2,28 @@
 // Rendering and board update logic. All DOM manipulation for the grid.
 
 import { state, DIFF_CONFIG } from '../core/sudoku.js';
+import { BOARD_SIZE, CELL_COUNT, BOX_ROWS, BOARD_CONFIG } from '../core/config.js';
 import { inputNumber } from '../core/game.js';
 import { formatTime } from '../utils/helpers.js';
 
 // ── UPDATE NUMPAD ─────────────────────────────────────────────────────────────
 export function updateNumPad() {
-    const counts = Array(10).fill(0);
+    const counts = Array(BOARD_SIZE + 1).fill(0);
     state.board.forEach(v => { if (v) counts[v]++; });
-    for (let n = 1; n <= 9; n++) {
+    for (let n = 1; n <= BOARD_SIZE; n++) {
         const btn = document.querySelector(`.num-key[data-n="${n}"]`);
         if (!btn) continue;
-        const remaining = 9 - counts[n];
+        const remaining = BOARD_SIZE - counts[n];
         btn.querySelector('.num-count').textContent = remaining || '';
         btn.classList.toggle('exhausted', remaining === 0);
         btn.classList.toggle('selected-num', state.selectedNum === n);
+        // Keep aria-label in sync with exhausted state
+        btn.setAttribute('aria-label',
+            remaining === 0
+                ? `${n}, fully placed`
+                : `${n}, ${remaining} remaining`
+        );
+        btn.setAttribute('aria-pressed', state.selectedNum === n ? 'true' : 'false');
     }
 }
 
@@ -23,13 +31,22 @@ export function updateNumPad() {
 export function renderBoard() {
     const board = document.getElementById('sudoku-board');
     board.innerHTML = '';
-    for (let i = 0; i < 81; i++) {
-        const row = Math.floor(i / 9), col = i % 9;
+
+    for (let i = 0; i < CELL_COUNT; i++) {
+        const row = Math.floor(i / BOARD_SIZE);
+        const col = i % BOARD_SIZE;
+
         const cell = document.createElement('div');
         cell.className = 'cell' + (state.given[i] ? ' given' : '');
         cell.dataset.idx = i;
         cell.dataset.row = row;
         cell.dataset.col = col;
+
+        // ── Accessibility ──────────────────────────────────────────────────
+        cell.setAttribute('role', 'gridcell');
+        cell.setAttribute('tabindex', '0');
+        cell.setAttribute('aria-label', _cellAriaLabel(i));
+        cell.setAttribute('aria-readonly', state.given[i] ? 'true' : 'false');
 
         // Completion ring
         const ring = document.createElement('div');
@@ -38,11 +55,12 @@ export function renderBoard() {
 
         // Notes grid
         const ng = document.createElement('div');
-        ng.className = 'notes-grid';
-        for (let n = 1; n <= 9; n++) {
+        ng.className      = 'notes-grid';
+        ng.setAttribute('aria-hidden', 'true'); // decorative; value label covers semantics
+        for (let n = 1; n <= BOARD_SIZE; n++) {
             const nd = document.createElement('div');
-            nd.className = 'note-num';
-            nd.dataset.n = n;
+            nd.className  = 'note-num';
+            nd.dataset.n  = n;
             nd.textContent = n;
             ng.appendChild(nd);
         }
@@ -53,15 +71,33 @@ export function renderBoard() {
         vd.className = 'cell-value';
         cell.appendChild(vd);
 
-        cell.addEventListener('click', () => selectCell(i));
+        cell.addEventListener('click',   () => selectCell(i));
+        cell.addEventListener('keydown', e  => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                selectCell(i);
+            }
+        });
+
         board.appendChild(cell);
     }
     updateBoardDisplay();
 }
 
+/** Build a human-readable aria-label for a given cell index. */
+function _cellAriaLabel(i) {
+    const row  = Math.floor(i / BOARD_SIZE) + 1;
+    const col  = i % BOARD_SIZE + 1;
+    const val  = state.board[i];
+    const base = `Row ${row}, Column ${col}`;
+    if (state.given[i])  return `${base}, given ${val}`;
+    if (val !== 0)       return `${base}, filled ${val}`;
+    return `${base}, empty`;
+}
+
 // ── UPDATE BOARD DISPLAY ──────────────────────────────────────────────────────
 export function updateBoardDisplay() {
-    for (let i = 0; i < 81; i++) {
+    for (let i = 0; i < CELL_COUNT; i++) {
         const cell = document.querySelector(`.cell[data-idx="${i}"]`);
         if (!cell) continue;
         const vd = cell.querySelector('.cell-value');
@@ -69,11 +105,11 @@ export function updateBoardDisplay() {
 
         const v = state.board[i];
         if (v !== 0) {
-            vd.textContent = v;
-            ng.style.display = 'none';
+            vd.textContent     = v;
+            ng.style.display   = 'none';
             cell.classList.toggle('error', state.opts.mistakes && state.errors[i]);
         } else {
-            vd.textContent = '';
+            vd.textContent   = '';
             ng.style.display = 'grid';
             ng.querySelectorAll('.note-num').forEach(nd => {
                 nd.classList.toggle('visible', state.notes[i].has(+nd.dataset.n));
@@ -81,6 +117,9 @@ export function updateBoardDisplay() {
         }
         // Complete ring
         cell.classList.toggle('complete', state.given[i] && v !== 0);
+
+        // Keep aria-label current
+        cell.setAttribute('aria-label', _cellAriaLabel(i));
     }
     updateHighlights();
     updateStats();
@@ -91,23 +130,25 @@ export function updateBoardDisplay() {
 
 // ── HIGHLIGHTS ───────────────────────────────────────────────────────────────
 export function updateHighlights() {
-    const sel = state.selected;
+    const sel    = state.selected;
     const selVal = sel >= 0 ? state.board[sel] : 0;
 
     document.querySelectorAll('.cell').forEach(cell => {
         const i = +cell.dataset.idx;
         cell.classList.remove('selected', 'related', 'same-num');
 
-        if (i === sel) {
-            cell.classList.add('selected'); return;
-        }
+        if (i === sel) { cell.classList.add('selected'); return; }
         if (sel < 0) return;
 
-        const selRow = Math.floor(sel / 9), selCol = sel % 9;
-        const selBoxR = Math.floor(selRow / 3) * 3, selBoxC = Math.floor(selCol / 3) * 3;
-        const iRow = Math.floor(i / 9), iCol = i % 9;
-        const isRelated = (iRow === selRow || iCol === selCol ||
-            (Math.floor(iRow / 3) * 3 === selBoxR && Math.floor(iCol / 3) * 3 === selBoxC));
+        const selRow  = Math.floor(sel / BOARD_SIZE), selCol  = sel % BOARD_SIZE;
+        const selBoxR = Math.floor(selRow / BOX_ROWS) * BOX_ROWS;
+        const selBoxC = Math.floor(selCol / BOX_ROWS) * BOX_ROWS;  // BOX_COLS === BOX_ROWS for 9×9
+        const iRow    = Math.floor(i / BOARD_SIZE),   iCol    = i % BOARD_SIZE;
+        const isRelated = (
+            iRow === selRow || iCol === selCol ||
+            (Math.floor(iRow / BOX_ROWS) * BOX_ROWS === selBoxR &&
+             Math.floor(iCol / BOX_ROWS) * BOX_ROWS === selBoxC)
+        );
 
         if (state.opts.samenum && selVal !== 0 && state.board[i] === selVal) {
             cell.classList.add('same-num');
@@ -131,31 +172,31 @@ export function selectCell(idx) {
 // ── STATS ────────────────────────────────────────────────────────────────────
 export function updateStats() {
     document.getElementById('mistakes-val').textContent = `${state.mistakes}/${state.maxMistakes}`;
-    document.getElementById('score-val').textContent = state.score;
+    document.getElementById('score-val').textContent    = state.score;
     const filled = state.board.filter(v => v !== 0).length;
-    document.getElementById('filled-val').textContent = `${filled}/81`;
+    document.getElementById('filled-val').textContent   = `${filled}/${CELL_COUNT}`;
 }
 
 // ── PROGRESS ─────────────────────────────────────────────────────────────────
 export function updateProgress() {
-    const total = 81;
     const correctFilled = state.board.filter((v, i) => v !== 0 && v === state.solution[i]).length;
-    const totalFilled = state.board.filter(v => v !== 0).length;
-    const filledPct = Math.round(correctFilled / total * 100);
-    const accPct = totalFilled ? Math.round(correctFilled / totalFilled * 100) : 100;
-    const hintPct = Math.round(state.hintsUsed / 3 * 100);
+    const totalFilled   = state.board.filter(v => v !== 0).length;
+    const filledPct     = Math.round(correctFilled / CELL_COUNT * 100);
+    const accPct        = totalFilled ? Math.round(correctFilled / totalFilled * 100) : 100;
+    const hintPct       = Math.round(state.hintsUsed / BOARD_CONFIG.maxHints * 100);
 
-    document.getElementById('prog-filled').style.width = filledPct + '%';
+    document.getElementById('prog-filled').style.width     = filledPct + '%';
     document.getElementById('prog-filled-txt').textContent = filledPct + '%';
-    document.getElementById('prog-acc').style.width = accPct + '%';
-    document.getElementById('prog-acc-txt').textContent = accPct + '%';
-    document.getElementById('prog-hint').style.width = hintPct + '%';
-    document.getElementById('prog-hint-txt').textContent = state.hintsUsed + '/3';
+    document.getElementById('prog-acc').style.width        = accPct + '%';
+    document.getElementById('prog-acc-txt').textContent    = accPct + '%';
+    document.getElementById('prog-hint').style.width       = hintPct + '%';
+    document.getElementById('prog-hint-txt').textContent   = `${state.hintsUsed}/${BOARD_CONFIG.maxHints}`;
 }
+
 
 // ── BEST TIMES ───────────────────────────────────────────────────────────────
 export function updateBestTimes() {
-    const el = document.getElementById('best-times');
+    const el    = document.getElementById('best-times');
     el.innerHTML = '';
     const diffs = ['easy', 'medium', 'hard', 'expert'];
     diffs.forEach(d => {
@@ -173,23 +214,23 @@ export function updateHeatmap() {
     const hm = document.getElementById('heatmap');
     if (!hm.children.length) {
         hm.innerHTML = '';
-        for (let i = 0; i < 81; i++) {
+        for (let i = 0; i < CELL_COUNT; i++) {
             const c = document.createElement('div');
             c.className = 'heatmap-cell';
-            c.title = `R${Math.floor(i / 9) + 1}C${i % 9 + 1}`;
+            c.title     = `R${Math.floor(i / BOARD_SIZE) + 1}C${i % BOARD_SIZE + 1}`;
             hm.appendChild(c);
         }
     }
     const max = Math.max(1, ...state.heatmap);
     hm.querySelectorAll('.heatmap-cell').forEach((c, i) => {
-        const v = state.heatmap[i];
+        const v         = state.heatmap[i];
         const intensity = v / max;
         if (v === 0) { c.style.background = 'var(--border-light)'; c.textContent = ''; }
         else {
             const r = Math.round(233 * intensity), g = Math.round(69 + 100 * (1 - intensity));
             c.style.background = `rgb(${r},${g},${Math.round(96 * intensity)})`;
-            c.style.color = 'rgba(255,255,255,0.8)';
-            c.textContent = v;
+            c.style.color      = 'rgba(255,255,255,0.8)';
+            c.textContent      = v;
         }
     });
 }

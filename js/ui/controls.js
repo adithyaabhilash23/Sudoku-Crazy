@@ -2,18 +2,30 @@
 // Rendering the number pad and wiring up keyboard shortcuts.
 
 import { state } from '../core/sudoku.js';
+import { BOARD_SIZE, CELL_COUNT } from '../core/config.js';
 import { inputNumber, clearCell, undoMove, useHint, toggleOpt } from '../core/game.js';
 import { selectCell } from './board.js';
+
+/** Index of the centre cell — used as the default keyboard navigation start. */
+const CENTER_IDX  = Math.floor(CELL_COUNT / 2);
+
+/** Maximum valid cell index. */
+const MAX_IDX     = CELL_COUNT - 1;
 
 // ── RENDER NUMPAD ────────────────────────────────────────────────────────────
 export function renderNumPad() {
     const np = document.getElementById('numpad');
     np.innerHTML = '';
-    for (let n = 1; n <= 9; n++) {
+    np.setAttribute('role', 'group');
+    np.setAttribute('aria-label', 'Number pad');
+
+    for (let n = 1; n <= BOARD_SIZE; n++) {
         const btn = document.createElement('button');
-        btn.className = 'num-key';
-        btn.dataset.n = n;
-        btn.innerHTML = `<span>${n}</span><span class="num-count" id="nc-${n}"></span>`;
+        btn.className   = 'num-key';
+        btn.dataset.n   = n;
+        btn.innerHTML   = `<span>${n}</span><span class="num-count" id="nc-${n}"></span>`;
+        btn.setAttribute('aria-label',   `${n}`);
+        btn.setAttribute('aria-pressed', 'false');
         btn.addEventListener('click', () => inputNumber(n));
         np.appendChild(btn);
     }
@@ -25,19 +37,19 @@ export function initKeyboard() {
         if (!state.gameActive) return;
         const key = e.key;
 
-        // Arrow keys
+        // Arrow keys — navigate board cells
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(key)) {
             e.preventDefault();
-            let idx = state.selected < 0 ? 40 : state.selected;
-            if (key === 'ArrowUp')    idx = Math.max(0, idx - 9);
-            if (key === 'ArrowDown')  idx = Math.min(80, idx + 9);
-            if (key === 'ArrowLeft')  idx = Math.max(0, idx - 1);
-            if (key === 'ArrowRight') idx = Math.min(80, idx + 1);
+            let idx = state.selected < 0 ? CENTER_IDX : state.selected;
+            if (key === 'ArrowUp')    idx = Math.max(0,       idx - BOARD_SIZE);
+            if (key === 'ArrowDown')  idx = Math.min(MAX_IDX, idx + BOARD_SIZE);
+            if (key === 'ArrowLeft')  idx = Math.max(0,       idx - 1);
+            if (key === 'ArrowRight') idx = Math.min(MAX_IDX, idx + 1);
             selectCell(idx);
             return;
         }
 
-        if (key >= '1' && key <= '9') { inputNumber(+key); return; }
+        if (key >= '1' && key <= String(BOARD_SIZE)) { inputNumber(+key); return; }
         if (key === '0' || key === 'Delete' || key === 'Backspace') { clearCell(); return; }
         if (key.toLowerCase() === 'z' || (e.ctrlKey && key.toLowerCase() === 'z')) { undoMove(); return; }
         if (key.toLowerCase() === 'n') { toggleOpt('notes'); return; }
