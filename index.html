@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sudoku Master</title>
+    <link rel="stylesheet" href="css/variables.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/animations.css" />
+</head>
+
+<body>
+
+    <!-- Animated Background -->
+    <div class="bg-anim" id="bg-anim"></div>
+
+    <!-- Confetti -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- WIN Modal -->
+    <div class="modal-overlay" id="win-modal">
+        <div class="modal">
+            <div class="modal-icon">🎉</div>
+            <div class="modal-title win">Puzzle Solved!</div>
+            <div class="modal-sub" id="win-sub">Outstanding! You've completed the puzzle.</div>
+            <div class="modal-stats">
+                <div class="modal-stat">
+                    <div class="ms-val" id="win-time">0:00</div>
+                    <div class="ms-label">Time</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="ms-val" id="win-score">0</div>
+                    <div class="ms-label">Score</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="ms-val" id="win-mistakes">0</div>
+                    <div class="ms-label">Mistakes</div>
+                </div>
+            </div>
+            <div class="modal-btns">
+                <button class="modal-btn primary" onclick="newGame()">New Game</button>
+                <button class="modal-btn secondary" onclick="closeModal('win-modal')">Review</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOSE Modal -->
+    <div class="modal-overlay" id="lose-modal">
+        <div class="modal">
+            <div class="modal-icon">💔</div>
+            <div class="modal-title lose">Game Over</div>
+            <div class="modal-sub">Too many mistakes! Don't worry, practice makes perfect.</div>
+            <div class="modal-btns">
+                <button class="modal-btn primary" onclick="newGame()">Try Again</button>
+                <button class="modal-btn secondary" onclick="revealSolution()">See Solution</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-wrapper">
+        <!-- Header -->
+        <header>
+            <div class="logo">SUDOKU MASTER</div>
+            <div class="tagline">Challenge your mind · Master the grid</div>
+        </header>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-chip">
+                <span class="icon">⏱️</span>
+                <span class="val" id="timer-val">0:00</span>
+            </div>
+            <div class="stat-chip">
+                <span class="icon">❌</span>
+                <span class="val" id="mistakes-val">0/3</span>
+            </div>
+            <div class="stat-chip">
+                <span class="icon">⭐</span>
+                <span class="val" id="score-val">0</span>
+            </div>
+            <div class="stat-chip">
+                <span class="icon">📝</span>
+                <span class="val" id="filled-val">0/81</span>
+            </div>
+        </div>
+
+        <!-- Main Game -->
+        <div class="game-container">
+
+            <!-- LEFT PANEL -->
+            <div class="left-panel">
+                <div class="panel-card">
+                    <div class="panel-title">⚡ Difficulty</div>
+                    <div class="diff-btns">
+                        <button class="diff-btn" data-diff="easy" onclick="setDifficulty('easy')"><span class="diff-dot"
+                                style="background:#00d68f"></span>Easy</button>
+                        <button class="diff-btn active" data-diff="medium" onclick="setDifficulty('medium')"><span
+                                class="diff-dot" style="background:#4fc3f7"></span>Medium</button>
+                        <button class="diff-btn" data-diff="hard" onclick="setDifficulty('hard')"><span class="diff-dot"
+                                style="background:#ffb74d"></span>Hard</button>
+                        <button class="diff-btn" data-diff="expert" onclick="setDifficulty('expert')"><span
+                                class="diff-dot" style="background:#e94560"></span>Expert</button>
+                    </div>
+                </div>
+
+                <div class="panel-card">
+                    <div class="panel-title">🎮 Actions</div>
+                    <div class="action-btns">
+                        <button class="action-btn" onclick="newGame()"><span class="btn-icon">🔄</span>New Game</button>
+                        <button class="action-btn" onclick="undoMove()"><span class="btn-icon">↩️</span>Undo</button>
+                        <button class="action-btn" onclick="useHint()"><span class="btn-icon">💡</span>Hint <span
+                                id="hint-count" style="color:var(--gold);font-size:0.75rem">(3)</span></button>
+                        <button class="action-btn" onclick="solvePuzzle()"><span class="btn-icon">🤖</span>Auto
+                            Solve</button>
+                        <button class="action-btn danger" onclick="confirmReset()"><span
+                                class="btn-icon">🗑️</span>Reset</button>
+                    </div>
+                </div>
+
+                <div class="panel-card">
+                    <div class="panel-title">⚙️ Options</div>
+                    <div class="toggle-row">
+                        <span class="toggle-label">Highlight Related</span>
+                        <button class="toggle on" id="tog-related" onclick="toggleOpt('related')"></button>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label">Highlight Same Nums</span>
+                        <button class="toggle on" id="tog-samenum" onclick="toggleOpt('samenum')"></button>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label">Show Mistakes</span>
+                        <button class="toggle on" id="tog-mistakes" onclick="toggleOpt('mistakes')"></button>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label">Notes Mode</span>
+                        <button class="toggle" id="tog-notes" onclick="toggleOpt('notes')"></button>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label">Auto Remove Notes</span>
+                        <button class="toggle on" id="tog-autonotes" onclick="toggleOpt('autonotes')"></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CENTER: BOARD + NUMPAD -->
+            <div class="board-section">
+                <div class="board-wrapper" id="board-wrapper">
+                    <div id="sudoku-board"></div>
+                </div>
+                <div class="numpad" id="numpad"></div>
+                <div class="kb-hint">
+                    Use <span class="kb-key">1-9</span> to fill · <span class="kb-key">Del</span>/<span
+                        class="kb-key">0</span> to clear · <span class="kb-key">N</span> for notes · <span
+                        class="kb-key">Z</span> to undo · <span class="kb-key">H</span> for hint · <span
+                        class="kb-key">↑↓←→</span> navigate
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL -->
+            <div class="right-panel">
+                <div class="panel-card">
+                    <div class="panel-title">📊 Progress</div>
+                    <div class="progress-row">
+                        <div class="prog-item">
+                            <div class="prog-label"><span>Filled</span><span id="prog-filled-txt">0%</span></div>
+                            <div class="prog-bar">
+                                <div class="prog-fill" id="prog-filled" style="width:0%"></div>
+                            </div>
+                        </div>
+                        <div class="prog-item">
+                            <div class="prog-label"><span>Accuracy</span><span id="prog-acc-txt">100%</span></div>
+                            <div class="prog-bar">
+                                <div class="prog-fill" id="prog-acc"
+                                    style="width:100%; background: linear-gradient(90deg, var(--green), var(--blue))">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="prog-item">
+                            <div class="prog-label"><span>Hints Used</span><span id="prog-hint-txt">0</span></div>
+                            <div class="prog-bar">
+                                <div class="prog-fill" id="prog-hint"
+                                    style="width:0%; background: linear-gradient(90deg, var(--gold), var(--orange))">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-card">
+                    <div class="panel-title">🏆 Best Times</div>
+                    <div id="best-times" style="display:flex;flex-direction:column;gap:6px;font-size:0.8rem;">
+                        <!-- filled by JS -->
+                    </div>
+                </div>
+
+                <div class="panel-card">
+                    <div class="panel-title">🔥 Move History</div>
+                    <div class="history-list" id="history-list"></div>
+                </div>
+
+                <div class="panel-card">
+                    <div class="panel-title">🗺️ Cell Heatmap</div>
+                    <div class="heatmap-grid" id="heatmap"></div>
+                </div>
+            </div>
+
+        </div><!-- end .game-container -->
+    </div><!-- end .app-wrapper -->
+
+    <script type="module" src="js/app.js"></script>
+</body>
+
+</html>

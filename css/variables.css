@@ -1,0 +1,28 @@
+/* ===== CSS VARIABLES / DESIGN TOKENS ===== */
+:root {
+    --bg-dark: #0f0f1a;
+    --bg-card: #1a1a2e;
+    --bg-panel: #16213e;
+    --accent: #e94560;
+    --accent2: #0f3460;
+    --accent3: #533483;
+    --gold: #f0a500;
+    --text-primary: #eaeaea;
+    --text-muted: #8888aa;
+    --cell-bg: #1e1e32;
+    --cell-hover: #2a2a45;
+    --cell-selected: #0f3460;
+    --cell-related: #1c1c35;
+    --cell-same: #2d2060;
+    --cell-given: #12122a;
+    --cell-error: #3a1020;
+    --border-light: #2a2a4a;
+    --border-box: #e94560;
+    --green: #00d68f;
+    --blue: #4fc3f7;
+    --purple: #ce93d8;
+    --orange: #ffb74d;
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --glow: 0 0 20px rgba(233, 69, 96, 0.4);
+    --glow-green: 0 0 20px rgba(0, 214, 143, 0.5);
+}
