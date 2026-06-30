@@ -77,7 +77,7 @@ header {
 .stats-bar {
     display: flex;
     gap: 12px;
-    margin-bottom: 10px;
+    margin-bottom: 0;
     animation: slideDown 0.7s ease;
 }
 

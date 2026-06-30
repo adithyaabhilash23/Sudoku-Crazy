@@ -79,25 +79,7 @@
             <div class="tagline">Challenge your mind · Master the grid</div>
         </header>
 
-        <!-- Stats Bar -->
-        <div class="stats-bar" role="region" aria-label="Game statistics">
-            <div class="stat-chip">
-                <span class="icon" aria-hidden="true">⏱️</span>
-                <span class="val" id="timer-val" aria-label="Timer">0:00</span>
-            </div>
-            <div class="stat-chip">
-                <span class="icon" aria-hidden="true">❌</span>
-                <span class="val" id="mistakes-val" aria-label="Mistakes">0/3</span>
-            </div>
-            <div class="stat-chip">
-                <span class="icon" aria-hidden="true">⭐</span>
-                <span class="val" id="score-val" aria-label="Score">0</span>
-            </div>
-            <div class="stat-chip">
-                <span class="icon" aria-hidden="true">📝</span>
-                <span class="val" id="filled-val" aria-label="Cells filled">0/81</span>
-            </div>
-        </div>
+
 
         <!-- Main Game -->
         <div class="game-container">
@@ -209,6 +191,25 @@
 
             <!-- CENTER: BOARD + NUMPAD -->
             <div class="board-section">
+                <!-- Stats Bar (inside center column so all three columns share the same top baseline) -->
+                <div class="stats-bar" role="region" aria-label="Game statistics">
+                    <div class="stat-chip">
+                        <span class="icon" aria-hidden="true">⏱️</span>
+                        <span class="val" id="timer-val" aria-label="Timer">0:00</span>
+                    </div>
+                    <div class="stat-chip">
+                        <span class="icon" aria-hidden="true">❌</span>
+                        <span class="val" id="mistakes-val" aria-label="Mistakes">0/3</span>
+                    </div>
+                    <div class="stat-chip">
+                        <span class="icon" aria-hidden="true">⭐</span>
+                        <span class="val" id="score-val" aria-label="Score">0</span>
+                    </div>
+                    <div class="stat-chip">
+                        <span class="icon" aria-hidden="true">📝</span>
+                        <span class="val" id="filled-val" aria-label="Cells filled">0/81</span>
+                    </div>
+                </div>
                 <div class="board-wrapper" id="board-wrapper">
                     <div id="sudoku-board"
                          role="grid"
