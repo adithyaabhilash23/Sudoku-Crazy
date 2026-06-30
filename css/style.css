@@ -40,19 +40,20 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 100vh;
-    padding: 20px 10px;
+    height: 100vh;
+    overflow: hidden;
+    padding: 12px 10px;
 }
 
 /* ===== HEADER ===== */
 header {
     text-align: center;
-    margin-bottom: 24px;
+    margin-bottom: 10px;
     animation: slideDown 0.6s ease;
 }
 
 .logo {
-    font-size: 2.6rem;
+    font-size: 2rem;
     font-weight: 900;
     letter-spacing: 3px;
     background: linear-gradient(135deg, var(--accent), var(--gold), var(--blue));
@@ -75,8 +76,8 @@ header {
 /* ===== STATS BAR ===== */
 .stats-bar {
     display: flex;
-    gap: 16px;
-    margin-bottom: 20px;
+    gap: 12px;
+    margin-bottom: 10px;
     animation: slideDown 0.7s ease;
 }
 
@@ -84,7 +85,7 @@ header {
     background: var(--bg-card);
     border: 1px solid var(--border-light);
     border-radius: 50px;
-    padding: 8px 20px;
+    padding: 5px 16px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -123,26 +124,29 @@ header {
 /* ===== GAME CONTAINER ===== */
 .game-container {
     display: flex;
-    gap: 24px;
+    gap: 18px;
     align-items: flex-start;
     flex-wrap: wrap;
     justify-content: center;
     animation: fadeIn 0.8s ease;
+    flex: 1;
+    min-height: 0;
 }
 
 /* ===== LEFT PANEL ===== */
 .left-panel {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    min-width: 180px;
+    gap: 8px;
+    width: 200px;
+    flex-shrink: 0;
 }
 
 .panel-card {
     background: var(--bg-card);
     border: 1px solid var(--border-light);
     border-radius: 16px;
-    padding: 16px;
+    padding: 10px 12px;
     box-shadow: var(--shadow);
     transition: border-color 0.3s;
 }
@@ -156,28 +160,28 @@ header {
     text-transform: uppercase;
     letter-spacing: 3px;
     color: var(--text-muted);
-    margin-bottom: 12px;
+    margin-bottom: 7px;
 }
 
 /* Difficulty Selector */
 .diff-btns {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 5px;
 }
 
 .diff-btn {
-    padding: 10px 16px;
+    padding: 7px 12px;
     border: 1px solid var(--border-light);
     background: transparent;
     border-radius: 10px;
     color: var(--text-muted);
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     text-align: left;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     transition: all 0.25s;
     font-family: inherit;
 }
@@ -206,21 +210,21 @@ header {
 .action-btns {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 5px;
 }
 
 .action-btn {
-    padding: 11px 16px;
+    padding: 7px 12px;
     border-radius: 10px;
     border: 1px solid var(--border-light);
     background: var(--cell-bg);
     color: var(--text-primary);
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-family: inherit;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     transition: all 0.25s;
     font-weight: 500;
 }
@@ -249,7 +253,7 @@ header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 0;
+    padding: 5px 0;
     border-bottom: 1px solid var(--border-light);
 }
 
@@ -532,21 +536,22 @@ header {
 .right-panel {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    min-width: 180px;
+    gap: 8px;
+    width: 200px;
+    flex-shrink: 0;
 }
 
 /* Progress */
 .progress-row {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 6px;
 }
 
 .prog-item {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 3px;
 }
 
 .prog-label {
@@ -572,11 +577,11 @@ header {
 
 /* History */
 .history-list {
-    max-height: 160px;
+    max-height: 90px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
 }
 
 .history-list::-webkit-scrollbar {
@@ -593,9 +598,9 @@ header {
 }
 
 .history-item {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: var(--text-muted);
-    padding: 5px 8px;
+    padding: 3px 7px;
     background: var(--cell-bg);
     border-radius: 6px;
     border-left: 3px solid var(--accent3);
@@ -614,7 +619,7 @@ header {
 .heatmap-grid {
     display: grid;
     grid-template-columns: repeat(9, 1fr);
-    gap: 3px;
+    gap: 2px;
 }
 
 .heatmap-cell {
@@ -834,11 +839,16 @@ header {
 /* ===== RESPONSIVE ===== */
 @media (max-width: 700px) {
 
+    .app-wrapper {
+        height: auto;
+        overflow: visible;
+        padding: 10px;
+    }
+
     .left-panel,
     .right-panel {
         flex-direction: row;
         flex-wrap: wrap;
-        min-width: auto;
         width: min(420px, 90vw);
     }
 
@@ -848,7 +858,8 @@ header {
     }
 
     .game-container {
-        gap: 14px;
+        gap: 12px;
+        flex: none;
     }
 
     .stats-bar {
@@ -858,6 +869,6 @@ header {
     }
 
     .stat-chip {
-        padding: 6px 12px;
+        padding: 4px 10px;
     }
 }
