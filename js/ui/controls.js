@@ -15,8 +15,7 @@ export function renderNumPad() {
     np.setAttribute('role', 'group');
     np.setAttribute('aria-label', 'Number pad');
 
-    // Grid columns match board size
-    np.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
+
 
     for (let n = 1; n <= boardSize; n++) {
         const btn = document.createElement('button');

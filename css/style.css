@@ -490,20 +490,30 @@ header {
 }
 
 /* ===== NUMBER PAD ===== */
+/*
+ * Fixed-size buttons that NEVER scale with board size.
+ * Reference: 9×9 layout — 9 buttons, 8 gaps of 6px, container = min(420px,90vw)
+ * Button size = (container - 8 × gap) / 9
+ * Fewer buttons (4×4) centre on one row; more (16×16, 25×25) wrap naturally.
+ */
 .numpad {
-    display: grid;
-    /* grid-template-columns set dynamically by renderNumPad() */
+    display: flex;
+    flex-wrap: wrap;
     gap: 6px;
     width: min(420px, 90vw);
+    justify-content: center;
 }
 
 .num-key {
-    aspect-ratio: 1;
+    /* Lock to the 9×9 reference size — never changes with board size */
+    width:  calc((min(420px, 90vw) - 8 * 6px) / 9);
+    height: calc((min(420px, 90vw) - 8 * 6px) / 9);
+    flex-shrink: 0;
     background: var(--bg-card);
     border: 1px solid var(--border-light);
     border-radius: 10px;
     color: var(--text-primary);
-    font-size: clamp(14px, 3.5vw, 20px);
+    font-size: 20px;
     font-weight: 700;
     cursor: pointer;
     font-family: inherit;
