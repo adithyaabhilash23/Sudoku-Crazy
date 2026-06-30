@@ -498,17 +498,19 @@ header {
  */
 .numpad {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 6px;
     width: min(420px, 90vw);
     justify-content: center;
+    align-items: center;
 }
 
 .num-key {
-    /* Lock to the 9×9 reference size — never changes with board size */
+    /* Lock to the 9×9 reference size. flex-shrink allows slight compression when
+     * pagination arrows are present (11 items in fixed container). */
     width:  calc((min(420px, 90vw) - 8 * 6px) / 9);
     height: calc((min(420px, 90vw) - 8 * 6px) / 9);
-    flex-shrink: 0;
+    flex-shrink: 1;  /* allow minor compression for paginated layout */
     background: var(--bg-card);
     border: 1px solid var(--border-light);
     border-radius: 10px;
@@ -576,9 +578,12 @@ header {
 
 /* ===== NUMPAD NAVIGATION (pagination arrows) ===== */
 .num-key.numpad-nav {
+    width: 28px;
+    min-width: 28px;
+    flex-shrink: 0; /* nav arrows never shrink */
     background: rgba(255,255,255,0.04);
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: 12px;
 }
 
 .num-key.numpad-nav:hover {
