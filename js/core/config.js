@@ -24,6 +24,8 @@ export const BOARD_SIZES = Object.freeze({
         maxHints:     2,
         maxMistakes:  3,
         label:        '4×4',
+        cellFont:     '32px',  // typography: larger cells, fewer numbers
+        noteFont:     '12px',
         difficulty: Object.freeze({
             easy:   { clues: 12, label: 'Easy',   color: '#00d68f' },
             medium: { clues: 10, label: 'Medium', color: '#4fc3f7' },
@@ -38,6 +40,8 @@ export const BOARD_SIZES = Object.freeze({
         maxHints:     3,
         maxMistakes:  3,
         label:        '9×9',
+        cellFont:     '22px',  // typography: reference size — must match current appearance
+        noteFont:     '9px',
         difficulty: Object.freeze({
             easy:   { clues: 45, label: 'Easy',   color: '#00d68f' },
             medium: { clues: 35, label: 'Medium', color: '#4fc3f7' },
@@ -52,6 +56,8 @@ export const BOARD_SIZES = Object.freeze({
         maxHints:     5,
         maxMistakes:  3,
         label:        '16×16',
+        cellFont:     '16px',  // typography: smaller cells, more numbers
+        noteFont:     '6px',
         difficulty: Object.freeze({
             easy:   { clues: 160, label: 'Easy',   color: '#00d68f' },
             medium: { clues: 130, label: 'Medium', color: '#4fc3f7' },
@@ -59,7 +65,12 @@ export const BOARD_SIZES = Object.freeze({
             expert: { clues:  80, label: 'Expert', color: '#e94560' },
         }),
     }),
-    // Future: 25: { boardSize:25, boxRows:5, boxCols:5, … }
+    // Future 25×25 — typography profile ready; enable when gameplay is implemented.
+    // 25: Object.freeze({
+    //     boardSize: 25, boxRows: 5, boxCols: 5, maxHints: 7, maxMistakes: 3,
+    //     label: '25×25', cellFont: '12px', noteFont: '4px',
+    //     difficulty: Object.freeze({ ... }),
+    // }),
 });
 
 
@@ -76,6 +87,8 @@ export const BOARD_CONFIG = {
     boxCols:     3,
     maxHints:    3,
     maxMistakes: 3,
+    cellFont:    '22px',  // updated by setBoardSize()
+    noteFont:    '9px',
     get cellCount() { return this.boardSize * this.boardSize; },
     get symbols()   { return Array.from({ length: this.boardSize }, (_, i) => i + 1); },
     difficulty:  BOARD_SIZES[9].difficulty,
@@ -96,6 +109,8 @@ export function setBoardSize(size) {
     BOARD_CONFIG.boxCols     = def.boxCols;
     BOARD_CONFIG.maxHints    = def.maxHints;
     BOARD_CONFIG.maxMistakes = def.maxMistakes;
+    BOARD_CONFIG.cellFont    = def.cellFont;
+    BOARD_CONFIG.noteFont    = def.noteFont;
     BOARD_CONFIG.difficulty  = def.difficulty;
 }
 

@@ -425,7 +425,7 @@ header {
 
 /* ===== CELL VALUE ===== */
 .cell-value {
-    font-size: clamp(14px, 3.8vw, 22px);
+    font-size: var(--cell-font-size, 22px); /* set per board size by renderBoard() */
     font-weight: 700;
     line-height: 1;
     transition: all 0.2s;
@@ -457,7 +457,7 @@ header {
 }
 
 .note-num {
-    font-size: clamp(6px, 1.2vw, 9px);
+    font-size: var(--note-font-size, 9px); /* set per board size by renderBoard() */
     color: var(--purple);
     line-height: 1;
     display: flex;

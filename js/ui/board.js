@@ -36,8 +36,11 @@ export function renderBoard() {
     const cellCount = BOARD_CONFIG.cellCount;
 
     board.innerHTML = '';
-    // Set the CSS grid columns dynamically
+    // Set grid layout and typography CSS variables from BOARD_CONFIG.
+    // --cell-font-size and --note-font-size cascade to all children via var().
     board.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
+    board.style.setProperty('--cell-font-size', BOARD_CONFIG.cellFont);
+    board.style.setProperty('--note-font-size', BOARD_CONFIG.noteFont);
 
     for (let i = 0; i < cellCount; i++) {
         const row = Math.floor(i / boardSize);
