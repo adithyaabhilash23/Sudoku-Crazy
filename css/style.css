@@ -430,6 +430,8 @@ header {
     line-height: 1;
     transition: all 0.2s;
     pointer-events: none;
+    position: relative; /* establish stacking context so z-index is honoured */
+    z-index: 6;         /* always above completion-ring (z-index: 1) */
 }
 
 .cell.given .cell-value {
@@ -481,7 +483,7 @@ header {
     background: var(--green);
     border-radius: 50%;
     display: none;
-    z-index: 5;
+    z-index: 1;         /* below cell-value (z-index: 6); above cell background */
     box-shadow: 0 0 8px var(--green);
 }
 
