@@ -137,7 +137,7 @@ header {
 .left-panel {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     width: 200px;
     flex-shrink: 0;
 }
@@ -146,7 +146,7 @@ header {
     background: var(--bg-card);
     border: 1px solid var(--border-light);
     border-radius: 16px;
-    padding: 10px 12px;
+    padding: 8px 10px;
     box-shadow: var(--shadow);
     transition: border-color 0.3s;
 }
@@ -160,18 +160,18 @@ header {
     text-transform: uppercase;
     letter-spacing: 3px;
     color: var(--text-muted);
-    margin-bottom: 7px;
+    margin-bottom: 5px;
 }
 
 /* Difficulty Selector */
 .diff-btns {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 4px;
 }
 
 .diff-btn {
-    padding: 7px 12px;
+    padding: 5px 10px;
     border: 1px solid var(--border-light);
     background: transparent;
     border-radius: 10px;
@@ -210,11 +210,11 @@ header {
 .action-btns {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 4px;
 }
 
 .action-btn {
-    padding: 7px 12px;
+    padding: 5px 10px;
     border-radius: 10px;
     border: 1px solid var(--border-light);
     background: var(--cell-bg);
@@ -253,7 +253,7 @@ header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 5px 0;
+    padding: 4px 0;
     border-bottom: 1px solid var(--border-light);
 }
 
@@ -305,7 +305,7 @@ header {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
 }
 
 /* ===== SUDOKU BOARD ===== */
@@ -536,7 +536,7 @@ header {
 .right-panel {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     width: 200px;
     flex-shrink: 0;
 }
@@ -545,7 +545,7 @@ header {
 .progress-row {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 5px;
 }
 
 .prog-item {
@@ -577,7 +577,7 @@ header {
 
 /* History */
 .history-list {
-    max-height: 90px;
+    max-height: 75px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
