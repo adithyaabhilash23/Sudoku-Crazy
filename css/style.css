@@ -79,16 +79,12 @@ header {
     gap: 12px;
     margin-bottom: 0;
     animation: slideDown 0.7s ease;
-    align-items: center;
-    flex-wrap: wrap;
-    justify-content: center;
 }
 
 /* ===== BOARD SIZE SELECTOR ===== */
 .size-selector {
     display: flex;
     gap: 4px;
-    margin-left: auto;
 }
 
 .size-btn {
