@@ -65,12 +65,23 @@ export const BOARD_SIZES = Object.freeze({
             expert: { clues:  80, label: 'Expert', color: '#e94560' },
         }),
     }),
-    // Future 25×25 — typography profile ready; enable when gameplay is implemented.
-    // 25: Object.freeze({
-    //     boardSize: 25, boxRows: 5, boxCols: 5, maxHints: 7, maxMistakes: 3,
-    //     label: '25×25', cellFont: '12px', noteFont: '4px',
-    //     difficulty: Object.freeze({ ... }),
-    // }),
+    25: Object.freeze({
+        boardSize:    25,
+        boxRows:      5,
+        boxCols:      5,
+        maxHints:     7,
+        maxMistakes:  3,
+        label:        '25×25',
+        cellFont:     '12px',  // typography: very small cells — must stay legible
+        noteFont:     '4px',
+        difficulty: Object.freeze({
+            easy:   { clues: 390, label: 'Easy',   color: '#00d68f' }, // ~62% of 625
+            medium: { clues: 315, label: 'Medium', color: '#4fc3f7' }, // ~50%
+            hard:   { clues: 245, label: 'Hard',   color: '#ffb74d' }, // ~39%
+            expert: { clues: 195, label: 'Expert', color: '#e94560' }, // ~31%
+        }),
+    }),
+
 });
 
 
