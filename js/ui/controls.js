@@ -1,33 +1,168 @@
 // ── NUMPAD & CONTROLS UI ─────────────────────────────────────────────────────
 // Rendering the number pad and wiring up keyboard shortcuts.
 // All board geometry is read from BOARD_CONFIG at call-time.
+//
+// NUMPAD PAGINATION
+// The numpad always shows at most 9 number buttons (matching the 9×9 size).
+// For boards with more than 9 symbols (e.g. 16×16) the buttons are split into
+// pages of 9.  Two permanent nav arrows (◀ ▶) and page-dot indicators are
+// added when pagination is needed.  Page state persists until the user changes
+// it or a new game / board-size switch resets it.
 
 import { state } from '../core/sudoku.js';
 import { BOARD_CONFIG } from '../core/config.js';
 import { inputNumber, clearCell, undoMove, useHint, toggleOpt } from '../core/game.js';
 import { selectCell } from './board.js';
+import { toSymbol, keyToNum } from '../utils/symbols.js';
+
+// ── PAGINATION STATE ──────────────────────────────────────────────────────────
+const PAGE_SIZE = 9; // always show at most 9 number buttons
+let _currentPage = 0;
+
+/** How many pages does the current board size need? */
+function _pageCount() {
+    return Math.ceil(BOARD_CONFIG.boardSize / PAGE_SIZE);
+}
+
+/** First symbol value on the given page (0-indexed). */
+function _pageStart(page) { return page * PAGE_SIZE + 1; }
+
+/** Last symbol value on the given page (inclusive). */
+function _pageEnd(page) {
+    return Math.min(_pageStart(page) + PAGE_SIZE - 1, BOARD_CONFIG.boardSize);
+}
 
 // ── RENDER NUMPAD ────────────────────────────────────────────────────────────
 export function renderNumPad() {
-    const boardSize = BOARD_CONFIG.boardSize;
-    const np = document.getElementById('numpad');
+    _currentPage = 0; // reset to page 0 whenever the numpad is fully rebuilt
+    _buildNumPad();
+}
+
+/** Build (or rebuild) the entire numpad DOM from scratch. */
+function _buildNumPad() {
+    const np        = document.getElementById('numpad');
+    const pages     = _pageCount();
+    const paginated = pages > 1;
+
     np.innerHTML = '';
     np.setAttribute('role', 'group');
     np.setAttribute('aria-label', 'Number pad');
 
+    // ── Prev arrow ────────────────────────────────────────────────────────────
+    if (paginated) {
+        const prev = _makeNavBtn('◀', 'numpad-prev', 'Previous symbols page', () => _goPage(-1));
+        np.appendChild(prev);
+    }
 
-
-    for (let n = 1; n <= boardSize; n++) {
+    // ── Number buttons for current page ───────────────────────────────────────
+    const start = _pageStart(_currentPage);
+    const end   = _pageEnd(_currentPage);
+    for (let n = start; n <= end; n++) {
         const btn = document.createElement('button');
-        btn.className   = 'num-key';
-        btn.dataset.n   = n;
-        btn.innerHTML   = `<span>${n}</span><span class="num-count" id="nc-${n}"></span>`;
-        btn.setAttribute('aria-label',   `${n}`);
+        btn.className = 'num-key';
+        btn.dataset.n = n;
+        btn.innerHTML = `<span>${toSymbol(n)}</span><span class="num-count" id="nc-${n}"></span>`;
+        btn.setAttribute('aria-label',   toSymbol(n));
         btn.setAttribute('aria-pressed', 'false');
         btn.addEventListener('click', () => inputNumber(n));
         np.appendChild(btn);
     }
+
+    // ── Next arrow ────────────────────────────────────────────────────────────
+    if (paginated) {
+        const next = _makeNavBtn('▶', 'numpad-next', 'Next symbols page', () => _goPage(+1));
+        np.appendChild(next);
+    }
+
+    // ── Page dots ─────────────────────────────────────────────────────────────
+    _renderPageDots(pages);
+
+    // Sync exhausted / selected-num state immediately
+    _syncNumPadState();
 }
+
+function _makeNavBtn(label, id, ariaLabel, onClick) {
+    const btn = document.createElement('button');
+    btn.className = 'num-key numpad-nav';
+    btn.id = id;
+    btn.innerHTML = `<span>${label}</span>`;
+    btn.setAttribute('aria-label', ariaLabel);
+    btn.addEventListener('click', onClick);
+    return btn;
+}
+
+/** Navigate pages; clamps to valid range. */
+function _goPage(delta) {
+    const pages = _pageCount();
+    _currentPage = Math.max(0, Math.min(pages - 1, _currentPage + delta));
+    _buildNumPad(); // rebuild buttons for the new page
+}
+
+/** Render or update page-dot indicators below the numpad. */
+function _renderPageDots(pages) {
+    // Remove old dots if any
+    const old = document.getElementById('numpad-dots');
+    if (old) old.remove();
+
+    if (pages <= 1) return;
+
+    const container = document.getElementById('numpad').parentElement;
+    const dots = document.createElement('div');
+    dots.id = 'numpad-dots';
+    dots.setAttribute('aria-hidden', 'true');
+
+    for (let p = 0; p < pages; p++) {
+        const d = document.createElement('span');
+        d.className = 'page-dot' + (p === _currentPage ? ' active' : '');
+        dots.appendChild(d);
+    }
+
+    // Insert immediately after the numpad element
+    const numpad = document.getElementById('numpad');
+    numpad.insertAdjacentElement('afterend', dots);
+}
+
+// ── UPDATE NUMPAD STATE ───────────────────────────────────────────────────────
+/**
+ * Sync exhausted / selected-num classes on visible buttons.
+ * Called by updateBoardDisplay — does NOT rebuild the DOM.
+ */
+export function updateNumPad() {
+    const boardSize = BOARD_CONFIG.boardSize;
+    const counts    = Array(boardSize + 1).fill(0);
+    state.board.forEach(v => { if (v) counts[v]++; });
+
+    // Only iterate symbols on the currently visible page
+    const start = _pageStart(_currentPage);
+    const end   = _pageEnd(_currentPage);
+
+    for (let n = start; n <= end; n++) {
+        const btn = document.querySelector(`.num-key[data-n="${n}"]`);
+        if (!btn) continue;
+        const remaining = boardSize - counts[n];
+        const sym = toSymbol(n);
+        btn.querySelector('.num-count').textContent = remaining || '';
+        btn.classList.toggle('exhausted',    remaining === 0);
+        btn.classList.toggle('selected-num', state.selectedNum === n);
+        btn.setAttribute('aria-label',
+            remaining === 0 ? `${sym}, fully placed` : `${sym}, ${remaining} remaining`
+        );
+        btn.setAttribute('aria-pressed', state.selectedNum === n ? 'true' : 'false');
+    }
+
+    // Sync nav arrow disabled states
+    const prev = document.getElementById('numpad-prev');
+    const next = document.getElementById('numpad-next');
+    if (prev) prev.disabled = (_currentPage === 0);
+    if (next) next.disabled = (_currentPage === _pageCount() - 1);
+
+    // Sync page dots
+    document.querySelectorAll('.page-dot').forEach((d, i) => {
+        d.classList.toggle('active', i === _currentPage);
+    });
+}
+
+function _syncNumPadState() { updateNumPad(); }
 
 // ── KEYBOARD SHORTCUTS ────────────────────────────────────────────────────────
 export function initKeyboard() {
@@ -51,9 +186,10 @@ export function initKeyboard() {
             return;
         }
 
-        // Number input — valid for 1..boardSize only
-        const num = parseInt(key, 10);
-        if (!isNaN(num) && num >= 1 && num <= boardSize) { inputNumber(num); return; }
+        // Number / letter input — supports 1-9 and A-G (or further)
+        const num = keyToNum(key, boardSize);
+        if (num !== null) { inputNumber(num); return; }
+
         if (key === '0' || key === 'Delete' || key === 'Backspace') { clearCell(); return; }
         if (key.toLowerCase() === 'z' || (e.ctrlKey && key.toLowerCase() === 'z')) { undoMove(); return; }
         if (key.toLowerCase() === 'n') { toggleOpt('notes'); return; }

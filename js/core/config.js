@@ -45,10 +45,23 @@ export const BOARD_SIZES = Object.freeze({
             expert: { clues: 22, label: 'Expert', color: '#e94560' },
         }),
     }),
-    // Future: enable by removing the `disabled` attribute on the HTML button.
-    // 16: { boardSize:16, boxRows:4, boxCols:4, ... }
-    // 25: { boardSize:25, boxRows:5, boxCols:5, ... }
+    16: Object.freeze({
+        boardSize:    16,
+        boxRows:      4,
+        boxCols:      4,
+        maxHints:     5,
+        maxMistakes:  3,
+        label:        '16×16',
+        difficulty: Object.freeze({
+            easy:   { clues: 160, label: 'Easy',   color: '#00d68f' },
+            medium: { clues: 130, label: 'Medium', color: '#4fc3f7' },
+            hard:   { clues: 100, label: 'Hard',   color: '#ffb74d' },
+            expert: { clues:  80, label: 'Expert', color: '#e94560' },
+        }),
+    }),
+    // Future: 25: { boardSize:25, boxRows:5, boxCols:5, … }
 });
+
 
 // ── ACTIVE CONFIGURATION ──────────────────────────────────────────────────────
 // All engine modules import this object and read its properties at call-time.

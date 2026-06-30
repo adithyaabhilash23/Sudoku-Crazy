@@ -574,6 +574,45 @@ header {
     opacity: 0.4;
 }
 
+/* ===== NUMPAD NAVIGATION (pagination arrows) ===== */
+.num-key.numpad-nav {
+    background: rgba(255,255,255,0.04);
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.num-key.numpad-nav:hover {
+    color: var(--text-primary);
+    background: var(--cell-hover);
+}
+
+.num-key.numpad-nav:disabled {
+    opacity: 0.2;
+    pointer-events: none;
+}
+
+/* ===== NUMPAD PAGE DOTS ===== */
+#numpad-dots {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    padding-top: 4px;
+}
+
+.page-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border-light);
+    transition: background 0.2s;
+}
+
+.page-dot.active {
+    background: var(--accent);
+    box-shadow: 0 0 6px rgba(233, 69, 96, 0.6);
+}
+
+
 /* ===== RIGHT PANEL ===== */
 .right-panel {
     display: flex;

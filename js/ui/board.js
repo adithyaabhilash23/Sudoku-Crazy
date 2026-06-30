@@ -6,6 +6,7 @@ import { state, DIFF_CONFIG } from '../core/sudoku.js';
 import { BOARD_CONFIG } from '../core/config.js';
 import { inputNumber } from '../core/game.js';
 import { formatTime } from '../utils/helpers.js';
+import { toSymbol } from '../utils/symbols.js';
 
 // ── UPDATE NUMPAD ─────────────────────────────────────────────────────────────
 export function updateNumPad() {
@@ -68,7 +69,7 @@ export function renderBoard() {
             const nd = document.createElement('div');
             nd.className   = 'note-num';
             nd.dataset.n   = n;
-            nd.textContent = n;
+            nd.textContent = toSymbol(n); // 1-9 or A-G
             ng.appendChild(nd);
         }
         cell.appendChild(ng);
@@ -104,9 +105,10 @@ function _cellAriaLabel(i, boardSize) {
     const row  = Math.floor(i / boardSize) + 1;
     const col  = i % boardSize + 1;
     const val  = state.board[i];
+    const sym  = val !== 0 ? toSymbol(val) : '';
     const base = `Row ${row}, Column ${col}`;
-    if (state.given[i]) return `${base}, given ${val}`;
-    if (val !== 0)      return `${base}, filled ${val}`;
+    if (state.given[i]) return `${base}, given ${sym}`;
+    if (val !== 0)      return `${base}, filled ${sym}`;
     return `${base}, empty`;
 }
 
@@ -123,7 +125,7 @@ export function updateBoardDisplay() {
 
         const v = state.board[i];
         if (v !== 0) {
-            vd.textContent   = v;
+            vd.textContent   = toSymbol(v); // display A-G for 10-16
             ng.style.display = 'none';
             cell.classList.toggle('error', state.opts.mistakes && state.errors[i]);
         } else {

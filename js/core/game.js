@@ -10,6 +10,7 @@ import { BOARD_CONFIG, setBoardSize } from './config.js';
 import { generatePuzzle } from './generator.js';
 import { saveBestTimes } from '../utils/storage.js';
 import { formatTime } from '../utils/helpers.js';
+import { toSymbol } from '../utils/symbols.js';
 
 // Forward-declared UI callbacks (set by app.js to avoid circular deps)
 let _ui = {};
@@ -119,7 +120,7 @@ export function inputNumber(num) {
         const cell = document.querySelector(`.cell[data-idx="${idx}"]`);
         cell.classList.add('shake');
         setTimeout(() => cell.classList.remove('shake'), 400);
-        _ui.addHistoryLog(`R${Math.floor(idx / boardSize) + 1}C${idx % boardSize + 1}: ${num} ✗`, 'err');
+        _ui.addHistoryLog(`R${Math.floor(idx / boardSize) + 1}C${idx % boardSize + 1}: ${toSymbol(num)} ✗`, 'err');
         _ui.showToast(`❌ Incorrect! ${state.maxMistakes - state.mistakes} chances left`, 'error');
         if (state.mistakes >= state.maxMistakes) {
             setTimeout(() => _ui.showModal('lose-modal'), 600);
@@ -131,7 +132,7 @@ export function inputNumber(num) {
         const cell = document.querySelector(`.cell[data-idx="${idx}"]`);
         cell.classList.add('pop-in');
         setTimeout(() => cell.classList.remove('pop-in'), 300);
-        _ui.addHistoryLog(`R${Math.floor(idx / boardSize) + 1}C${idx % boardSize + 1}: ${num} ✓`, '');
+        _ui.addHistoryLog(`R${Math.floor(idx / boardSize) + 1}C${idx % boardSize + 1}: ${toSymbol(num)} ✓`, '');
     }
 
     state.selectedNum = num;
@@ -198,7 +199,7 @@ export function useHint() {
 
     _ui.updateBoardDisplay();
     _ui.addHistoryLog(
-        `Hint R${Math.floor(idx / boardSize) + 1}C${idx % boardSize + 1}: ${state.solution[idx]} 💡`, ''
+        `Hint R${Math.floor(idx / boardSize) + 1}C${idx % boardSize + 1}: ${toSymbol(state.solution[idx])} 💡`, ''
     );
     _ui.showToast(`💡 Hint used! ${state.hintsLeft} remaining`, 'info');
     checkWin();
@@ -310,7 +311,9 @@ export function setBoardSizeAndNewGame(size) {
 
     // Update the keyboard hint to reflect valid input range
     const kbNumHint = document.getElementById('kb-num-hint');
-    if (kbNumHint) kbNumHint.textContent = `1-${bs}`;
+    if (kbNumHint) {
+        kbNumHint.textContent = bs <= 9 ? `1-${bs}` : `1-9 · A-${toSymbol(bs)}`;
+    }
 
     newGame();
 }
