@@ -1,9 +1,12 @@
 // ── GAME LOGIC ───────────────────────────────────────────────────────────────
 // Pure game state mutations — no direct DOM manipulation except through
 // callbacks/imports to UI modules.
+//
+// All board geometry is read from BOARD_CONFIG at call-time so the game
+// works correctly after a board-size switch.
 
 import { state, DIFF_CONFIG } from './sudoku.js';
-import { BOARD_SIZE, CELL_COUNT, BOX_ROWS, BOX_COLS, BOARD_CONFIG } from './config.js';
+import { BOARD_CONFIG, setBoardSize } from './config.js';
 import { generatePuzzle } from './generator.js';
 import { saveBestTimes } from '../utils/storage.js';
 import { formatTime } from '../utils/helpers.js';
@@ -21,16 +24,22 @@ export function scoreForCell() {
 
 // ── AUTO-REMOVE NOTES ────────────────────────────────────────────────────────
 export function clearRelatedNotes(idx, num) {
-    const row  = Math.floor(idx / BOARD_SIZE);
-    const col  = idx % BOARD_SIZE;
-    const boxR = Math.floor(row / BOX_ROWS) * BOX_ROWS;
-    const boxC = Math.floor(col / BOX_COLS) * BOX_COLS;
-    for (let i = 0; i < CELL_COUNT; i++) {
-        const ir = Math.floor(i / BOARD_SIZE), ic = i % BOARD_SIZE;
+    const boardSize = BOARD_CONFIG.boardSize;
+    const boxRows   = BOARD_CONFIG.boxRows;
+    const boxCols   = BOARD_CONFIG.boxCols;
+    const cellCount = BOARD_CONFIG.cellCount;
+
+    const row  = Math.floor(idx / boardSize);
+    const col  = idx % boardSize;
+    const boxR = Math.floor(row / boxRows) * boxRows;
+    const boxC = Math.floor(col / boxCols) * boxCols;
+
+    for (let i = 0; i < cellCount; i++) {
+        const ir = Math.floor(i / boardSize), ic = i % boardSize;
         if (
             ir === row || ic === col ||
-            (Math.floor(ir / BOX_ROWS) * BOX_ROWS === boxR &&
-             Math.floor(ic / BOX_COLS) * BOX_COLS === boxC)
+            (Math.floor(ir / boxRows) * boxRows === boxR &&
+             Math.floor(ic / boxCols) * boxCols === boxC)
         ) {
             state.notes[i].delete(num);
         }
@@ -53,8 +62,9 @@ export function stopTimer() {
 
 // ── WIN CHECK ────────────────────────────────────────────────────────────────
 export function checkWin() {
+    const cellCount = BOARD_CONFIG.cellCount;
     const filled = state.board.filter((v, i) => v !== 0 && v === state.solution[i]).length;
-    if (filled === CELL_COUNT) {
+    if (filled === cellCount) {
         state.gameActive = false;
         stopTimer();
         const t = formatTime(state.timerSec);
@@ -66,7 +76,7 @@ export function checkWin() {
         document.getElementById('win-score').textContent    = state.score;
         document.getElementById('win-mistakes').textContent = state.mistakes;
         document.getElementById('win-sub').textContent =
-            `${DIFF_CONFIG[state.difficulty].label} puzzle completed in ${t}!`;
+            `${DIFF_CONFIG()[state.difficulty].label} puzzle completed in ${t}!`;
         document.getElementById('board-wrapper').classList.add('pulse-win');
         setTimeout(() => {
             _ui.showModal('win-modal');
@@ -79,6 +89,8 @@ export function checkWin() {
 export function inputNumber(num) {
     const idx = state.selected;
     if (idx < 0 || state.given[idx] || !state.gameActive) return;
+
+    const boardSize = BOARD_CONFIG.boardSize;
 
     if (state.opts.notes) {
         const snap = new Set(state.notes[idx]);
@@ -107,7 +119,7 @@ export function inputNumber(num) {
         const cell = document.querySelector(`.cell[data-idx="${idx}"]`);
         cell.classList.add('shake');
         setTimeout(() => cell.classList.remove('shake'), 400);
-        _ui.addHistoryLog(`R${Math.floor(idx / BOARD_SIZE) + 1}C${idx % BOARD_SIZE + 1}: ${num} ✗`, 'err');
+        _ui.addHistoryLog(`R${Math.floor(idx / boardSize) + 1}C${idx % boardSize + 1}: ${num} ✗`, 'err');
         _ui.showToast(`❌ Incorrect! ${state.maxMistakes - state.mistakes} chances left`, 'error');
         if (state.mistakes >= state.maxMistakes) {
             setTimeout(() => _ui.showModal('lose-modal'), 600);
@@ -119,7 +131,7 @@ export function inputNumber(num) {
         const cell = document.querySelector(`.cell[data-idx="${idx}"]`);
         cell.classList.add('pop-in');
         setTimeout(() => cell.classList.remove('pop-in'), 300);
-        _ui.addHistoryLog(`R${Math.floor(idx / BOARD_SIZE) + 1}C${idx % BOARD_SIZE + 1}: ${num} ✓`, '');
+        _ui.addHistoryLog(`R${Math.floor(idx / boardSize) + 1}C${idx % boardSize + 1}: ${num} ✓`, '');
     }
 
     state.selectedNum = num;
@@ -143,11 +155,12 @@ export function clearCell() {
 export function undoMove() {
     if (!state.history.length) { _ui.showToast('Nothing to undo!', 'info'); return; }
     const h = state.history.pop();
+    const boardSize = BOARD_CONFIG.boardSize;
     state.board[h.idx]  = h.oldVal;
     state.notes[h.idx]  = h.oldNotes;
     state.errors[h.idx] = false;
     state.selected      = h.idx;
-    _ui.addHistoryLog(`Undo R${Math.floor(h.idx / BOARD_SIZE) + 1}C${h.idx % BOARD_SIZE + 1}`, 'undo');
+    _ui.addHistoryLog(`Undo R${Math.floor(h.idx / boardSize) + 1}C${h.idx % boardSize + 1}`, 'undo');
     _ui.updateBoardDisplay();
     _ui.showToast('↩️ Move undone', 'info');
 }
@@ -157,10 +170,13 @@ export function useHint() {
     if (state.hintsLeft <= 0) { _ui.showToast('No hints left! 💡', 'error'); return; }
     if (!state.gameActive) return;
 
+    const cellCount = BOARD_CONFIG.cellCount;
+    const boardSize = BOARD_CONFIG.boardSize;
+
     let idx = state.selected;
     if (idx < 0 || state.board[idx] !== 0 || state.given[idx]) {
         const empties = [];
-        for (let i = 0; i < CELL_COUNT; i++) if (state.board[i] === 0) empties.push(i);
+        for (let i = 0; i < cellCount; i++) if (state.board[i] === 0) empties.push(i);
         if (!empties.length) return;
         idx = empties[Math.floor(Math.random() * empties.length)];
     }
@@ -182,7 +198,7 @@ export function useHint() {
 
     _ui.updateBoardDisplay();
     _ui.addHistoryLog(
-        `Hint R${Math.floor(idx / BOARD_SIZE) + 1}C${idx % BOARD_SIZE + 1}: ${state.solution[idx]} 💡`, ''
+        `Hint R${Math.floor(idx / boardSize) + 1}C${idx % boardSize + 1}: ${state.solution[idx]} 💡`, ''
     );
     _ui.showToast(`💡 Hint used! ${state.hintsLeft} remaining`, 'info');
     checkWin();
@@ -192,7 +208,8 @@ export function useHint() {
 export function solvePuzzle() {
     if (!state.gameActive) return;
     if (!confirm('Auto-solve will end your current game. Continue?')) return;
-    for (let i = 0; i < CELL_COUNT; i++) {
+    const cellCount = BOARD_CONFIG.cellCount;
+    for (let i = 0; i < cellCount; i++) {
         if (!state.given[i]) {
             state.board[i]  = state.solution[i];
             state.errors[i] = false;
@@ -216,29 +233,32 @@ export function newGame() {
     _ui.closeModal('lose-modal');
     document.getElementById('board-wrapper').classList.remove('pulse-win');
 
-    const cfg = DIFF_CONFIG[state.difficulty];
-    _ui.showToast(`Generating ${cfg.label} puzzle...`, 'info');
+    const diffCfg = DIFF_CONFIG()[state.difficulty];
+    _ui.showToast(`Generating ${diffCfg.label} puzzle...`, 'info');
 
     setTimeout(() => {
-        const { puzzle, solution } = generatePuzzle(cfg.clues);
-        state.board      = [...puzzle];
-        state.solution   = [...solution];
-        state.given      = puzzle.map(v => v !== 0);
-        state.notes      = Array.from({ length: CELL_COUNT }, () => new Set());
-        state.errors     = Array(CELL_COUNT).fill(false);
-        state.heatmap    = Array(CELL_COUNT).fill(0);
-        state.selected   = -1;
-        state.selectedNum = -1;
-        state.mistakes   = 0;
-        state.score      = 0;
-        state.hintsLeft  = BOARD_CONFIG.maxHints;
-        state.hintsUsed  = 0;
-        state.history    = [];
-        state.historyLog = [];
-        state.gameActive = true;
+        const cellCount = BOARD_CONFIG.cellCount;
+        const { puzzle, solution } = generatePuzzle(diffCfg.clues);
 
-        document.getElementById('hint-count').textContent   = `(${BOARD_CONFIG.maxHints})`;
-        document.getElementById('history-list').innerHTML   = '';
+        state.board       = [...puzzle];
+        state.solution    = [...solution];
+        state.given       = puzzle.map(v => v !== 0);
+        state.notes       = Array.from({ length: cellCount }, () => new Set());
+        state.errors      = Array(cellCount).fill(false);
+        state.heatmap     = Array(cellCount).fill(0);
+        state.selected    = -1;
+        state.selectedNum = -1;
+        state.mistakes    = 0;
+        state.maxMistakes = BOARD_CONFIG.maxMistakes;
+        state.score       = 0;
+        state.hintsLeft   = BOARD_CONFIG.maxHints;
+        state.hintsUsed   = 0;
+        state.history     = [];
+        state.historyLog  = [];
+        state.gameActive  = true;
+
+        document.getElementById('hint-count').textContent = `(${BOARD_CONFIG.maxHints})`;
+        document.getElementById('history-list').innerHTML = '';
 
         stopTimer(); state.timerSec = 0;
         startTimer();
@@ -246,7 +266,7 @@ export function newGame() {
         _ui.renderBoard();
         _ui.renderNumPad();
         _ui.updateBestTimes();
-        _ui.showToast(`🎮 New ${cfg.label} game started!`, 'success');
+        _ui.showToast(`🎮 New ${diffCfg.label} game started!`, 'success');
     }, 50);
 }
 
@@ -261,11 +281,46 @@ export function setDifficulty(d) {
     newGame();
 }
 
+// ── BOARD SIZE SWITCH ─────────────────────────────────────────────────────────
+/**
+ * Switch the active board size and start a fresh game.
+ * This is the single entry point for all board-size changes.
+ * Adding future sizes (16, 25) requires no changes here.
+ * @param {number} size - one of 4, 9 (16, 25 when enabled)
+ */
+export function setBoardSizeAndNewGame(size) {
+    setBoardSize(size);           // mutates BOARD_CONFIG in place
+    state.boardSizeKey = size;
+
+    // Sync the size-selector buttons
+    document.querySelectorAll('.size-btn').forEach(b => {
+        const active = +b.dataset.size === size;
+        b.classList.toggle('active', active);
+        b.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+
+    // Update board ARIA dimensions
+    const bs = BOARD_CONFIG.boardSize;
+    const boardEl = document.getElementById('sudoku-board');
+    if (boardEl) {
+        boardEl.setAttribute('aria-label', `Sudoku grid, ${bs} rows and ${bs} columns`);
+        boardEl.setAttribute('aria-rowcount', bs);
+        boardEl.setAttribute('aria-colcount', bs);
+    }
+
+    // Update the keyboard hint to reflect valid input range
+    const kbNumHint = document.getElementById('kb-num-hint');
+    if (kbNumHint) kbNumHint.textContent = `1-${bs}`;
+
+    newGame();
+}
+
 // ── RESET ────────────────────────────────────────────────────────────────────
 export function confirmReset() {
     if (!state.gameActive) return;
     if (!confirm('Reset all your progress?')) return;
-    for (let i = 0; i < CELL_COUNT; i++) {
+    const cellCount = BOARD_CONFIG.cellCount;
+    for (let i = 0; i < cellCount; i++) {
         if (!state.given[i]) {
             state.board[i] = 0; state.errors[i] = false; state.notes[i].clear();
         }

@@ -191,7 +191,7 @@
 
             <!-- CENTER: BOARD + NUMPAD -->
             <div class="board-section">
-                <!-- Stats Bar (inside center column so all three columns share the same top baseline) -->
+                <!-- Stats Bar -->
                 <div class="stats-bar" role="region" aria-label="Game statistics">
                     <div class="stat-chip">
                         <span class="icon" aria-hidden="true">⏱️</span>
@@ -209,6 +209,36 @@
                         <span class="icon" aria-hidden="true">📝</span>
                         <span class="val" id="filled-val" aria-label="Cells filled">0/81</span>
                     </div>
+
+                    <!-- Board Size Selector -->
+                    <div class="size-selector" role="group" aria-label="Board size">
+                        <button class="size-btn"
+                                data-action="set-board-size"
+                                data-size="4"
+                                aria-label="Switch to 4 by 4 Sudoku"
+                                aria-pressed="false">4×4</button>
+                        <button class="size-btn active"
+                                data-action="set-board-size"
+                                data-size="9"
+                                aria-label="Switch to 9 by 9 Sudoku"
+                                aria-pressed="true">9×9</button>
+                        <button class="size-btn"
+                                data-action="set-board-size"
+                                data-size="16"
+                                aria-label="16 by 16 Sudoku — coming soon"
+                                aria-pressed="false"
+                                disabled
+                                aria-disabled="true"
+                                title="Coming soon">16×16</button>
+                        <button class="size-btn"
+                                data-action="set-board-size"
+                                data-size="25"
+                                aria-label="25 by 25 Sudoku — coming soon"
+                                aria-pressed="false"
+                                disabled
+                                aria-disabled="true"
+                                title="Coming soon">25×25</button>
+                    </div>
                 </div>
                 <div class="board-wrapper" id="board-wrapper">
                     <div id="sudoku-board"
@@ -218,7 +248,7 @@
                 </div>
                 <div class="numpad" id="numpad" role="group" aria-label="Number pad"></div>
                 <div class="kb-hint" aria-label="Keyboard shortcuts">
-                    Use <span class="kb-key">1-9</span> to fill ·
+                    Use <span class="kb-key" id="kb-num-hint">1-9</span> to fill ·
                     <span class="kb-key">Del</span>/<span class="kb-key">0</span> to clear ·
                     <span class="kb-key">N</span> for notes ·
                     <span class="kb-key">Z</span> to undo ·

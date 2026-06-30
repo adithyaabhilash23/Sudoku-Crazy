@@ -79,7 +79,51 @@ header {
     gap: 12px;
     margin-bottom: 0;
     animation: slideDown 0.7s ease;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
 }
+
+/* ===== BOARD SIZE SELECTOR ===== */
+.size-selector {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+}
+
+.size-btn {
+    padding: 4px 10px;
+    border: 1px solid var(--border-light);
+    background: transparent;
+    border-radius: 8px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: inherit;
+    letter-spacing: 0.5px;
+    transition: all 0.25s;
+    white-space: nowrap;
+}
+
+.size-btn:hover:not(:disabled) {
+    background: var(--cell-hover);
+    color: var(--text-primary);
+    border-color: var(--accent3);
+}
+
+.size-btn.active {
+    background: linear-gradient(135deg, var(--accent2), var(--accent3));
+    color: white;
+    border-color: var(--accent);
+    box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
+}
+
+.size-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
 
 .stat-chip {
     background: var(--bg-card);
@@ -324,7 +368,7 @@ header {
 
 #sudoku-board {
     display: grid;
-    grid-template-columns: repeat(9, 1fr);
+    /* grid-template-columns set dynamically by renderBoard() */
     gap: 2px;
     width: min(420px, 90vw);
 }
@@ -345,16 +389,8 @@ header {
     overflow: hidden;
 }
 
-/* Box borders */
-.cell[data-col="3"],
-.cell[data-col="6"] {
-    border-left: 2.5px solid var(--border-box);
-}
+/* Box borders are applied inline by renderBoard() so they work for any board size. */
 
-.cell[data-row="3"],
-.cell[data-row="6"] {
-    border-top: 2.5px solid var(--border-box);
-}
 
 .cell:hover:not(.given) {
     background: var(--cell-hover);
@@ -460,7 +496,7 @@ header {
 /* ===== NUMBER PAD ===== */
 .numpad {
     display: grid;
-    grid-template-columns: repeat(9, 1fr);
+    /* grid-template-columns set dynamically by renderNumPad() */
     gap: 6px;
     width: min(420px, 90vw);
 }

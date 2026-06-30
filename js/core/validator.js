@@ -1,7 +1,8 @@
 // ── VALIDATOR ────────────────────────────────────────────────────────────────
 // Pure logic: no DOM manipulation.
+// Reads board geometry from BOARD_CONFIG at call-time so it works for any size.
 
-import { BOARD_SIZE, BOX_ROWS, BOX_COLS } from './config.js';
+import { BOARD_CONFIG } from './config.js';
 
 /**
  * Check if placing `num` at position `idx` is valid on the given board array.
@@ -11,18 +12,19 @@ import { BOARD_SIZE, BOX_ROWS, BOX_COLS } from './config.js';
  * @returns {boolean}
  */
 export function isValid(board, idx, num) {
-    const row  = Math.floor(idx / BOARD_SIZE);
-    const col  = idx % BOARD_SIZE;
-    const boxR = Math.floor(row / BOX_ROWS) * BOX_ROWS;
-    const boxC = Math.floor(col / BOX_COLS) * BOX_COLS;
+    const boardSize = BOARD_CONFIG.boardSize;
+    const boxRows   = BOARD_CONFIG.boxRows;
+    const boxCols   = BOARD_CONFIG.boxCols;
 
-    for (let i = 0; i < BOARD_SIZE; i++) {
-        // Row check
-        if (board[row * BOARD_SIZE + i] === num) return false;
-        // Col check
-        if (board[i * BOARD_SIZE + col] === num) return false;
-        // Box check
-        if (board[(boxR + Math.floor(i / BOX_COLS)) * BOARD_SIZE + (boxC + i % BOX_COLS)] === num) return false;
+    const row  = Math.floor(idx / boardSize);
+    const col  = idx % boardSize;
+    const boxR = Math.floor(row / boxRows) * boxRows;
+    const boxC = Math.floor(col / boxCols) * boxCols;
+
+    for (let i = 0; i < boardSize; i++) {
+        if (board[row * boardSize + i] === num) return false;
+        if (board[i * boardSize + col] === num) return false;
+        if (board[(boxR + Math.floor(i / boxCols)) * boardSize + (boxC + i % boxCols)] === num) return false;
     }
     return true;
 }
