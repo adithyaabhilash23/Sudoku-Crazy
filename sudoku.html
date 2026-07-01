@@ -1694,7 +1694,6 @@
             document.getElementById('board-wrapper').classList.remove('pulse-win');
 
             const cfg = DIFF_CONFIG[state.difficulty];
-            showToast(`Generating ${cfg.label} puzzle...`, 'info');
 
             setTimeout(() => {
                 const { puzzle, solution } = generatePuzzle(cfg.clues);
@@ -1723,7 +1722,6 @@
                 renderBoard();
                 renderNumPad();
                 updateBestTimes();
-                showToast(`🎮 New ${cfg.label} game started!`, 'success');
             }, 50);
         }
 

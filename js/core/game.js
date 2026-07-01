@@ -235,7 +235,6 @@ export function newGame() {
     document.getElementById('board-wrapper').classList.remove('pulse-win');
 
     const diffCfg = DIFF_CONFIG()[state.difficulty];
-    _ui.showToast(`Generating ${diffCfg.label} puzzle...`, 'info');
 
     setTimeout(() => {
         const cellCount = BOARD_CONFIG.cellCount;
@@ -267,7 +266,6 @@ export function newGame() {
         _ui.renderBoard();
         _ui.renderNumPad();
         _ui.updateBestTimes();
-        _ui.showToast(`🎮 New ${diffCfg.label} game started!`, 'success');
     }, 50);
 }
 

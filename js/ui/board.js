@@ -41,6 +41,8 @@ export function renderBoard() {
     board.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
     board.style.setProperty('--cell-font-size', BOARD_CONFIG.cellFont);
     board.style.setProperty('--note-font-size', BOARD_CONFIG.noteFont);
+    board.style.setProperty('--completion-dot-size',   BOARD_CONFIG.dotSize);
+    board.style.setProperty('--completion-dot-offset', BOARD_CONFIG.dotOffset);
 
     for (let i = 0; i < cellCount; i++) {
         const row = Math.floor(i / boardSize);

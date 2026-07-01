@@ -425,13 +425,16 @@ header {
 
 /* ===== CELL VALUE ===== */
 .cell-value {
-    font-size: var(--cell-font-size, 22px); /* set per board size by renderBoard() */
+    font-size: var(--cell-font-size, 22px);
+    /* set per board size by renderBoard() */
     font-weight: 700;
     line-height: 1;
     transition: all 0.2s;
     pointer-events: none;
-    position: relative; /* establish stacking context so z-index is honoured */
-    z-index: 6;         /* always above completion-ring (z-index: 1) */
+    position: relative;
+    /* establish stacking context so z-index is honoured */
+    z-index: 6;
+    /* always above completion-ring (z-index: 1) */
 }
 
 .cell.given .cell-value {
@@ -459,7 +462,8 @@ header {
 }
 
 .note-num {
-    font-size: var(--note-font-size, 9px); /* set per board size by renderBoard() */
+    font-size: var(--note-font-size, 9px);
+    /* set per board size by renderBoard() */
     color: var(--purple);
     line-height: 1;
     display: flex;
@@ -476,14 +480,15 @@ header {
 /* ===== COMPLETION RING ===== */
 .completion-ring {
     position: absolute;
-    top: -3px;
-    right: -3px;
-    width: 14px;
-    height: 14px;
+    top:    calc(-1 * var(--completion-dot-offset, 3px));
+    right:  calc(-1 * var(--completion-dot-offset, 3px));
+    width:  var(--completion-dot-size, 14px);
+    height: var(--completion-dot-size, 14px);
     background: var(--green);
     border-radius: 50%;
     display: none;
-    z-index: 1;         /* below cell-value (z-index: 6); above cell background */
+    z-index: 1;
+    /* below cell-value (z-index: 6); above cell background */
     box-shadow: 0 0 8px var(--green);
 }
 
@@ -510,9 +515,10 @@ header {
 .num-key {
     /* Lock to the 9×9 reference size. flex-shrink allows slight compression when
      * pagination arrows are present (11 items in fixed container). */
-    width:  calc((min(420px, 90vw) - 8 * 6px) / 9);
+    width: calc((min(420px, 90vw) - 8 * 6px) / 9);
     height: calc((min(420px, 90vw) - 8 * 6px) / 9);
-    flex-shrink: 1;  /* allow minor compression for paginated layout */
+    flex-shrink: 1;
+    /* allow minor compression for paginated layout */
     background: var(--bg-card);
     border: 1px solid var(--border-light);
     border-radius: 10px;
@@ -582,8 +588,9 @@ header {
 .num-key.numpad-nav {
     width: 28px;
     min-width: 28px;
-    flex-shrink: 0; /* nav arrows never shrink */
-    background: rgba(255,255,255,0.04);
+    flex-shrink: 0;
+    /* nav arrows never shrink */
+    background: rgba(255, 255, 255, 0.04);
     color: var(--text-muted);
     font-size: 12px;
 }
